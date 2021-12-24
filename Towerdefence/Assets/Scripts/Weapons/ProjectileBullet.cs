@@ -63,18 +63,21 @@ public class ProjectileBullet : MonoBehaviour
 				trail.startWidth = 0.02f;
 				trail.time = 0.2f;
 				speed = 15f;
+				lifeTimeDuration = 10f;
 				break;
 			case AmmoType.Burst:
 				trail.colorGradient = burstTrail;
 				trail.startWidth = 0.02f;
 				trail.time = 0.2f;
 				speed = 18f;
+				lifeTimeDuration = 10f;
 				break;
 			case AmmoType.Automatic:
 				trail.colorGradient = automaticTrail;
 				trail.startWidth = 0.015f;
 				trail.time = 0.1f;
 				speed = 18f;
+				lifeTimeDuration = 10f;
 
 				break; 
 			case AmmoType.Shotgun:
@@ -83,6 +86,7 @@ public class ProjectileBullet : MonoBehaviour
 				trail.time = 0.1f;
 
 				speed = UnityEngine.Random.Range(15f, 18f);
+				lifeTimeDuration = UnityEngine.Random.Range(0.5f, 0.7f);
 
 				break;
 			case AmmoType.Explosive:
@@ -90,6 +94,7 @@ public class ProjectileBullet : MonoBehaviour
 				trail.startWidth = 0.08f;
 				trail.time = 0.5f;
 				speed = 12f;
+				lifeTimeDuration = 10f;
 
 				break;
 			default:
