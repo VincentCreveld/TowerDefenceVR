@@ -43,6 +43,8 @@ public class ProjectileBullet : MonoBehaviour
 	[SerializeField] private float explosionRange = 1.0f;
 	[SerializeField] private GameObject explosionPrefab = null;
 
+	private float travelTime = 0.0f;
+
 	public void Init(Vector3 position, Vector3 direction, AmmoType type)
 	{
 		transform.position = position;
@@ -55,6 +57,8 @@ public class ProjectileBullet : MonoBehaviour
 		burstGraphics.gameObject.SetActive(type == AmmoType.Burst);
 		shotgunGraphics.gameObject.SetActive(type == AmmoType.Shotgun);
 		explosiveGraphics.gameObject.SetActive(type == AmmoType.Explosive);
+
+		travelTime = 0.0f;
 
 		switch (type)
 		{
@@ -85,8 +89,8 @@ public class ProjectileBullet : MonoBehaviour
 				trail.startWidth = 0.015f;
 				trail.time = 0.1f;
 
-				speed = UnityEngine.Random.Range(15f, 18f);
-				lifeTimeDuration = UnityEngine.Random.Range(0.5f, 0.7f);
+				speed = UnityEngine.Random.Range(25f, 28f);
+				lifeTimeDuration = UnityEngine.Random.Range(0.7f, 0.9f);
 
 				break;
 			case AmmoType.Explosive:
@@ -108,15 +112,28 @@ public class ProjectileBullet : MonoBehaviour
 		lifeTimeCoroutine = StartCoroutine(LifeTimeCoroutine(lifeTimeDuration));
 	}
 
+	private float GetShotgunSpeedForLifeTime()
+	{
+		return Mathf.Lerp(speed, 0f, Mathf.InverseLerp(0f, lifeTimeDuration, travelTime));
+	}
+
 	public void LateUpdate()
 	{
+		travelTime += Time.deltaTime;
 		Move();
 		CheckForCollision();
 	}
 
 	protected void Move()
 	{
-		transform.Translate(transform.forward * speed * Time.deltaTime, Space.World);
+		float s = speed;
+		if (ammoType == AmmoType.Explosive)
+			transform.forward -= Vector3.up * (9.81f * Time.deltaTime * 0.1f);
+
+		if (ammoType == AmmoType.Shotgun)
+			s = GetShotgunSpeedForLifeTime();
+
+		transform.Translate(transform.forward * s * Time.deltaTime, Space.World);
 	}
 
 	private void CheckForCollision()

@@ -16,8 +16,8 @@ TagManager:
   - Player
   - Weapon
   - Bullet
-  - 
-  - 
+  - ConnectionObject
+  - ConnectionBlocker
   - 
   - 
   - 

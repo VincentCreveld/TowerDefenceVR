@@ -81,6 +81,7 @@
     <Compile Include="Assets\Oculus\Voice\Demo\Scripts\InteractionHandler.cs" />
     <Compile Include="Assets\Oculus\Spatializer\scripts\ONSPProfiler.cs" />
     <Compile Include="Assets\Oculus\Spatializer\scripts\ONSPPropagationInterface.cs" />
+    <Compile Include="Assets\Scripts\DebugWeapon.cs" />
     <Compile Include="Assets\Scripts\Powerups\ICollectible.cs" />
     <Compile Include="Assets\Scripts\Enemy\IHittable.cs" />
     <Compile Include="Assets\Scripts\WaveManagement\Wave.cs" />
@@ -88,7 +89,9 @@
     <Compile Include="Assets\Oculus\Spatializer\scenes\Standard Assets\Character Controllers\Sources\Scripts\MouseLook.cs" />
     <Compile Include="Assets\Oculus\Spatializer\scripts\ONSPSettings.cs" />
     <Compile Include="Assets\Oculus\Voice\Demo\Scripts\UIShapesDemo\ColorChanger.cs" />
-    <Compile Include="Assets\Scripts\DebugWeapon.cs" />
+    <Compile Include="Assets\WallBuilder\WallNode.cs" />
+    <Compile Include="Assets\WallBuilder\ConnectionBlocker.cs" />
+    <Compile Include="Assets\WallBuilder\WallConnectionManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
