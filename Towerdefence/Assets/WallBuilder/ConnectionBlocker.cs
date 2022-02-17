@@ -5,6 +5,9 @@ using UnityEngine;
 public class ConnectionBlocker : MonoBehaviour
 {
 	[SerializeField] private Transform col = null;
+
+	public WallSegmentManager.WallSegmentType WallSegmentType = WallSegmentManager.WallSegmentType.None;
+
 	private void OnDrawGizmos()
 	{
 		Color c = Gizmos.color;

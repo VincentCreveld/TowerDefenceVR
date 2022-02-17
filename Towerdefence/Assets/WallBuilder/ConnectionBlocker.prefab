@@ -54,6 +54,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1551407519066468391}
   - component: {fileID: 6772203827009209929}
+  - component: {fileID: 1878204948791805261}
   m_Layer: 0
   m_Name: ConnectionBlocker
   m_TagString: Untagged
@@ -89,3 +90,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   col: {fileID: 3440359932720464505}
+--- !u!114 &1878204948791805261
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 497398986077033008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97adb548fe7cfe5488d03625b2a69e11, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gridSize: {x: 0.5, y: 0.5, z: 0.5}

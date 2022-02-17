@@ -15,10 +15,18 @@ public class WallNode : MonoBehaviour
 		Corner
 	}
 
-	[SerializeField] private Transform xPosWall;
-	[SerializeField] private Transform xNegWall;
-	[SerializeField] private Transform zPosWall;
-	[SerializeField] private Transform zNegWall;
+	public enum WallSegmentLength
+	{
+		None,
+		Half,
+		Full,
+		Double
+	}
+
+	[SerializeField] private WallSegmentManager xPosWall;
+	[SerializeField] private WallSegmentManager xNegWall;
+	[SerializeField] private WallSegmentManager zPosWall;
+	[SerializeField] private WallSegmentManager zNegWall;
 	[SerializeField] private Transform singleCorner;
 	[SerializeField] private Transform flatCorner;
 	[SerializeField] private Transform connectionObject;
@@ -29,6 +37,16 @@ public class WallNode : MonoBehaviour
 	[SerializeField] private bool zNegConnected = false;
 	[SerializeField] private bool xPosConnected = false;
 	[SerializeField] private bool xNegConnected = false;
+
+	[SerializeField] private WallSegmentLength zPosLength = WallSegmentLength.None;
+	[SerializeField] private WallSegmentLength zNegLength = WallSegmentLength.None;
+	[SerializeField] private WallSegmentLength xPosLength = WallSegmentLength.None;
+	[SerializeField] private WallSegmentLength xNegLength = WallSegmentLength.None;
+
+	[SerializeField] private WallSegmentManager.WallSegmentType zPosPreferredWallSegmentType = WallSegmentManager.WallSegmentType._1x3FullWall;
+	[SerializeField] private WallSegmentManager.WallSegmentType zNegPreferredWallSegmentType = WallSegmentManager.WallSegmentType._1x3FullWall;
+	[SerializeField] private WallSegmentManager.WallSegmentType xPosPreferredWallSegmentType = WallSegmentManager.WallSegmentType._1x3FullWall;
+	[SerializeField] private WallSegmentManager.WallSegmentType xNegPreferredWallSegmentType = WallSegmentManager.WallSegmentType._1x3FullWall;
 
 	private bool isCorner = false;
 	private int wallCount = 0;
@@ -45,36 +63,123 @@ public class WallNode : MonoBehaviour
 		Ray xNeg = new Ray(connectionObject.position, new Vector3(-1, 0, 0));
 
 		RaycastHit hit;
-		if (Physics.Raycast(zPos, out hit, 1f, raycastLayer))
-			zPosConnected = ((1<<hit.transform.gameObject.layer) == connectionObjectLayer);
-		else
+		float rayLength = zPosWall.PreferredWallLength;
+		if (rayLength <= 0)
+			rayLength = 1f;
+		if (Physics.Raycast(zPos, out hit, rayLength, raycastLayer))
+		{
 			zPosConnected = false;
+			zPosLength = WallSegmentLength.None;
+			
+			if ((1 << hit.transform.gameObject.layer) == connectionObjectLayer)
+			{
+				zPosConnected = true;
+				float length = Mathf.RoundToInt(Vector3.Distance(transform.position, hit.transform.position) * 100);
+				length = length - (length % 25);
 
-		if (Physics.Raycast(zNeg, out hit, 1f, raycastLayer))
-			zNegConnected =  ((1 << hit.transform.gameObject.layer) == connectionObjectLayer);
+				zPosLength = (length <= zPosWall.WallLength * 100) ? WallSegmentLength.Full : (length == zPosWall.WallLength * 50) ? WallSegmentLength.Half : WallSegmentLength.None;
+
+				zPosWall.WallSpace = length;
+			}
+		}
 		else
+		{
+			zPosConnected = false;
+			zPosLength = WallSegmentLength.None;
+		}
+
+		rayLength = zNegWall.PreferredWallLength;
+		if (rayLength <= 0)
+			rayLength = 1f;
+		if (Physics.Raycast(zNeg, out hit, rayLength, raycastLayer))
+		{
 			zNegConnected = false;
+			zNegLength = WallSegmentLength.None;
+			
+			if ((1 << hit.transform.gameObject.layer) == connectionObjectLayer)
+			{
+				zNegConnected = true;
+				float length = Mathf.RoundToInt(Vector3.Distance(transform.position, hit.transform.position) * 100);
+				length = length - (length % 25);
 
-		if (Physics.Raycast(xPos, out hit, 1f, raycastLayer))
-			xPosConnected = ((1 << hit.transform.gameObject.layer) == connectionObjectLayer);
+				zNegLength = (length <= zNegWall.WallLength * 100) ? WallSegmentLength.Full : (length == zNegWall.WallLength * 50) ? WallSegmentLength.Half : WallSegmentLength.None;
+
+				zNegWall.WallSpace = length;
+			}
+		}
 		else
+		{
+			zNegConnected = false;
+			zNegLength = WallSegmentLength.None;
+		}
+
+		rayLength = xPosWall.PreferredWallLength;
+		if (rayLength <= 0)
+			rayLength = 1f;
+		if (Physics.Raycast(xPos, out hit, rayLength, raycastLayer))
+		{
 			xPosConnected = false;
+			xPosLength = WallSegmentLength.None;
 
-		if (Physics.Raycast(xNeg, out hit, 1f, raycastLayer))
-			xNegConnected = ((1 << hit.transform.gameObject.layer) == connectionObjectLayer);
+			if ((1 << hit.transform.gameObject.layer) == connectionObjectLayer)
+			{
+				xPosConnected = true;
+				float length = Mathf.RoundToInt(Vector3.Distance(transform.position, hit.transform.position) * 100);
+				length = length - (length % 25);
+
+				xPosLength = (length <= xPosWall.WallLength * 100) ? WallSegmentLength.Full : (length == xPosWall.WallLength * 50) ? WallSegmentLength.Half : WallSegmentLength.None;
+
+				xPosWall.WallSpace = length;
+			}
+		}
 		else
+		{
+			xPosConnected = false;
+			xPosLength = WallSegmentLength.None;
+		}
+
+		rayLength = xNegWall.PreferredWallLength;
+		if (rayLength <= 0)
+			rayLength = 1f;
+		if (Physics.Raycast(xNeg, out hit, rayLength, raycastLayer))
+		{
 			xNegConnected = false;
+			xNegLength = WallSegmentLength.None;
+
+			if ((1 << hit.transform.gameObject.layer) == connectionObjectLayer)
+			{
+				xNegConnected = true;
+				float length = Mathf.RoundToInt(Vector3.Distance(transform.position, hit.transform.position) * 100);
+				length = length - (length % 25);
+
+				xNegLength = (length <= xNegWall.WallLength * 100) ? WallSegmentLength.Full : (length == xNegWall.WallLength * 50) ? WallSegmentLength.Half : WallSegmentLength.None;
+
+				xNegWall.WallSpace = length;
+			}
+		}
+		else
+		{
+			xNegConnected = false;
+			xNegLength = WallSegmentLength.None;
+		}
 	}
 
 	[ContextMenu("CheckCorners")]
 	public void SetupWall()
 	{
+		zPosWall.SegmentType = zPosPreferredWallSegmentType;
+		zNegWall.SegmentType = zNegPreferredWallSegmentType;
+		xPosWall.SegmentType = xPosPreferredWallSegmentType;
+		xNegWall.SegmentType = xNegPreferredWallSegmentType;
 		CheckAllCorners();
 
+
+
+
 		xPosWall.gameObject.SetActive(xPosConnected);
-		xNegWall.gameObject.SetActive(xNegConnected);
+		xNegWall.gameObject.SetActive(xNegConnected && xNegLength == WallSegmentLength.Full);
 		zPosWall.gameObject.SetActive(zPosConnected);
-		zNegWall.gameObject.SetActive(zNegConnected);
+		zNegWall.gameObject.SetActive(zNegConnected && zNegLength == WallSegmentLength.Full);
 
 		SetCorners();
 	}
@@ -83,7 +188,6 @@ public class WallNode : MonoBehaviour
 	private void OptimiseWalls()
 	{
 		
-
 	}
 
 	private void SetCorners()
@@ -120,10 +224,10 @@ public class WallNode : MonoBehaviour
 			flatCorner.gameObject.SetActive(true);
 
 			Vector3 dir = Vector3.zero;
-			dir = (zPosConnected) ? zPosWall.forward : dir;
-			dir = (zNegConnected) ? zNegWall.forward : dir;
-			dir = (xPosConnected) ? xPosWall.forward : dir;
-			dir = (xNegConnected) ? xNegWall.forward : dir;
+			dir = (zPosConnected) ? zPosWall.transform.forward : dir;
+			dir = (zNegConnected) ? zNegWall.transform.forward : dir;
+			dir = (xPosConnected) ? xPosWall.transform.forward : dir;
+			dir = (xNegConnected) ? xNegWall.transform.forward : dir;
 
 			flatCorner.forward = -dir.normalized;
 			isCorner = true;
@@ -145,10 +249,10 @@ public class WallNode : MonoBehaviour
 				flatCorner.gameObject.SetActive(false);
 
 				Vector3 dir = Vector3.zero;
-				dir += (zPosConnected) ? zPosWall.forward : Vector3.zero;
-				dir += (zNegConnected) ? zNegWall.forward : Vector3.zero;
-				dir += (xPosConnected) ? xPosWall.forward : Vector3.zero;
-				dir += (xNegConnected) ? xNegWall.forward : Vector3.zero;
+				dir += (zPosConnected) ? zPosWall.transform.forward : Vector3.zero;
+				dir += (zNegConnected) ? zNegWall.transform.forward : Vector3.zero;
+				dir += (xPosConnected) ? xPosWall.transform.forward : Vector3.zero;
+				dir += (xNegConnected) ? xNegWall.transform.forward : Vector3.zero;
 
 				singleCorner.forward = dir.normalized;
 				isCorner = true;

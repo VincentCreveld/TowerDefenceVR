@@ -84,10 +84,10 @@
     <Compile Include="Assets\Oculus\Voice\Lib\Wit.ai\Scripts\Runtime\Events\VoiceEvents.cs" />
     <Compile Include="Assets\Oculus\Voice\Lib\Wit.ai\Scripts\Runtime\Data\RingBuffer.cs" />
     <Compile Include="Assets\Oculus\Voice\Lib\Wit.ai\Scripts\Runtime\CallbackHandlers\SimpleIntentHandler.cs" />
-    <Compile Include="Assets\Oculus\Voice\Lib\Wit.ai\Scripts\Runtime\CallbackHandlers\WitResponseMatcher.cs" />
     <Compile Include="Assets\Oculus\Voice\Lib\Wit.ai\Scripts\Runtime\WitResultUtilities.cs" />
-    <Compile Include="Assets\Oculus\Voice\Lib\Wit.ai\Scripts\Runtime\WitRequestFactory.cs" />
+    <Compile Include="Assets\Oculus\Voice\Lib\Wit.ai\Scripts\Runtime\CallbackHandlers\WitResponseMatcher.cs" />
     <Compile Include="Assets\Oculus\Voice\Lib\Wit.ai\Scripts\Runtime\Data\Entities\WitDynamicEntity.cs" />
+    <Compile Include="Assets\Oculus\Voice\Lib\Wit.ai\Scripts\Runtime\WitRequestFactory.cs" />
     <Compile Include="Assets\Oculus\Voice\Lib\Wit.ai\Scripts\Runtime\Interfaces\IAudioInputSource.cs" />
     <Compile Include="Assets\Oculus\Voice\Lib\Wit.ai\Scripts\Runtime\Data\Entities\WitSimpleDynamicEntity.cs" />
     <Compile Include="Assets\Oculus\Voice\Lib\Wit.ai\Scripts\Runtime\Data\Configuration\WitConfiguration.cs" />
@@ -336,20 +336,23 @@
     <Reference Include="SyntaxTree.VisualStudio.Unity.Bridge">
       <HintPath>C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\15.0\Editor\SyntaxTree.VisualStudio.Unity.Bridge.dll</HintPath>
     </Reference>
+    <Reference Include="ICSharpCode.NRefactory">
+      <HintPath>Library\PackageCache\com.unity.render-pipelines.core@10.7.0\Editor\ShaderGenerator\ICSharpCode.NRefactory.dll</HintPath>
+    </Reference>
+    <Reference Include="log4netPlastic">
+      <HintPath>Library\PackageCache\com.unity.collab-proxy@1.13.5\Lib\Editor\PlasticSCM\log4netPlastic.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.Plastic.Newtonsoft.Json">
       <HintPath>Library\PackageCache\com.unity.collab-proxy@1.13.5\Lib\Editor\PlasticSCM\Unity.Plastic.Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Plastic.Antlr3.Runtime">
       <HintPath>Library\PackageCache\com.unity.collab-proxy@1.13.5\Lib\Editor\PlasticSCM\Unity.Plastic.Antlr3.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="unityplastic">
-      <HintPath>Library\PackageCache\com.unity.collab-proxy@1.13.5\Lib\Editor\PlasticSCM\unityplastic.dll</HintPath>
-    </Reference>
-    <Reference Include="log4netPlastic">
-      <HintPath>Library\PackageCache\com.unity.collab-proxy@1.13.5\Lib\Editor\PlasticSCM\log4netPlastic.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>Library\PackageCache\com.unity.nuget.newtonsoft-json@2.0.0\Runtime\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="unityplastic">
+      <HintPath>Library\PackageCache\com.unity.collab-proxy@1.13.5\Lib\Editor\PlasticSCM\unityplastic.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2020.3.22f1\Editor\Data\MonoBleedingEdge\lib\mono\4.7.1-api\mscorlib.dll</HintPath>
