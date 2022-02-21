@@ -23,39 +23,48 @@ public class WallNode : MonoBehaviour
 		Double
 	}
 
-	[SerializeField] private WallSegmentManager xPosWall;
-	[SerializeField] private WallSegmentManager xNegWall;
+	[Header("zPos Wall vars")]
 	[SerializeField] private WallSegmentManager zPosWall;
+	[SerializeField] private WallNode zPosConnectedNode = null;
+	private WallSegmentLength zPosLength = WallSegmentLength.None;
+	[SerializeField] private WallSegmentManager.WallSegmentType zPosPreferredWallSegmentType = WallSegmentManager.WallSegmentType.fullWall;
+
+	[Header("xPos Wall vars")]
+	[SerializeField] private WallSegmentManager xPosWall;
+	[SerializeField] private WallNode xPosConnectedNode = null;
+	private WallSegmentLength xPosLength = WallSegmentLength.None;
+	[SerializeField] private WallSegmentManager.WallSegmentType xPosPreferredWallSegmentType = WallSegmentManager.WallSegmentType.fullWall;
+
+	[Header("zNeg Wall vars (unused)")]
 	[SerializeField] private WallSegmentManager zNegWall;
+	[SerializeField] private WallNode zNegConnectedNode = null;
+	private WallSegmentLength zNegLength = WallSegmentLength.None;
+	private WallSegmentManager.WallSegmentType zNegPreferredWallSegmentType = WallSegmentManager.WallSegmentType.fullWall;
+
+	[Header("xNeg Wall vars (unused)")]
+	[SerializeField] private WallSegmentManager xNegWall;
+	[SerializeField] private WallNode xNegConnectedNode = null;
+	private WallSegmentLength xNegLength = WallSegmentLength.None;
+	private WallSegmentManager.WallSegmentType xNegPreferredWallSegmentType = WallSegmentManager.WallSegmentType.fullWall;
+
+	[Header("Misc vars")]
 	[SerializeField] private Transform singleCorner;
 	[SerializeField] private Transform flatCorner;
+	[SerializeField] private Transform lowFlatCorner;
+	[SerializeField] private Transform lowSingleCorner;
 	[SerializeField] private Transform connectionObject;
 	[SerializeField] private LayerMask raycastLayer;
 	[SerializeField] private LayerMask connectionObjectLayer;
 
-	[SerializeField] private bool zPosConnected = false;
-	[SerializeField] private bool zNegConnected = false;
-	[SerializeField] private bool xPosConnected = false;
-	[SerializeField] private bool xNegConnected = false;
-
-	[SerializeField] private WallSegmentLength zPosLength = WallSegmentLength.None;
-	[SerializeField] private WallSegmentLength zNegLength = WallSegmentLength.None;
-	[SerializeField] private WallSegmentLength xPosLength = WallSegmentLength.None;
-	[SerializeField] private WallSegmentLength xNegLength = WallSegmentLength.None;
-
-	[SerializeField] private WallSegmentManager.WallSegmentType zPosPreferredWallSegmentType = WallSegmentManager.WallSegmentType._1x3FullWall;
-	[SerializeField] private WallSegmentManager.WallSegmentType zNegPreferredWallSegmentType = WallSegmentManager.WallSegmentType._1x3FullWall;
-	[SerializeField] private WallSegmentManager.WallSegmentType xPosPreferredWallSegmentType = WallSegmentManager.WallSegmentType._1x3FullWall;
-	[SerializeField] private WallSegmentManager.WallSegmentType xNegPreferredWallSegmentType = WallSegmentManager.WallSegmentType._1x3FullWall;
-
 	private bool isCorner = false;
-	private int wallCount = 0;
+	public int wallCount = 0;
 
 	public WallState wallState { get; private set; } = WallState.None;
 
 	public void CheckAllCorners()
 	{
 		connectionObject.transform.localPosition = Vector3.zero;
+		transform.rotation = Quaternion.identity;
 
 		Ray zPos = new Ray(connectionObject.position, new Vector3(0, 0, 1));
 		Ray zNeg = new Ray(connectionObject.position, new Vector3(0, 0, -1));
@@ -68,12 +77,14 @@ public class WallNode : MonoBehaviour
 			rayLength = 1f;
 		if (Physics.Raycast(zPos, out hit, rayLength, raycastLayer))
 		{
-			zPosConnected = false;
+			zPosConnectedNode = null;
+
 			zPosLength = WallSegmentLength.None;
 			
 			if ((1 << hit.transform.gameObject.layer) == connectionObjectLayer)
 			{
-				zPosConnected = true;
+				zPosConnectedNode = hit.transform.gameObject.GetComponentInParent<WallNode>();
+				
 				float length = Mathf.RoundToInt(Vector3.Distance(transform.position, hit.transform.position) * 100);
 				length = length - (length % 25);
 
@@ -84,7 +95,7 @@ public class WallNode : MonoBehaviour
 		}
 		else
 		{
-			zPosConnected = false;
+			zPosConnectedNode = null;
 			zPosLength = WallSegmentLength.None;
 		}
 
@@ -93,12 +104,13 @@ public class WallNode : MonoBehaviour
 			rayLength = 1f;
 		if (Physics.Raycast(zNeg, out hit, rayLength, raycastLayer))
 		{
-			zNegConnected = false;
+			zNegConnectedNode = null;
 			zNegLength = WallSegmentLength.None;
 			
 			if ((1 << hit.transform.gameObject.layer) == connectionObjectLayer)
 			{
-				zNegConnected = true;
+				zNegConnectedNode = hit.transform.gameObject.GetComponentInParent<WallNode>();
+				
 				float length = Mathf.RoundToInt(Vector3.Distance(transform.position, hit.transform.position) * 100);
 				length = length - (length % 25);
 
@@ -109,7 +121,7 @@ public class WallNode : MonoBehaviour
 		}
 		else
 		{
-			zNegConnected = false;
+			zNegConnectedNode = null;
 			zNegLength = WallSegmentLength.None;
 		}
 
@@ -118,12 +130,13 @@ public class WallNode : MonoBehaviour
 			rayLength = 1f;
 		if (Physics.Raycast(xPos, out hit, rayLength, raycastLayer))
 		{
-			xPosConnected = false;
+			xPosConnectedNode = null;
 			xPosLength = WallSegmentLength.None;
 
 			if ((1 << hit.transform.gameObject.layer) == connectionObjectLayer)
 			{
-				xPosConnected = true;
+				xPosConnectedNode = hit.transform.gameObject.GetComponentInParent<WallNode>();
+				
 				float length = Mathf.RoundToInt(Vector3.Distance(transform.position, hit.transform.position) * 100);
 				length = length - (length % 25);
 
@@ -134,7 +147,7 @@ public class WallNode : MonoBehaviour
 		}
 		else
 		{
-			xPosConnected = false;
+			xPosConnectedNode = null;
 			xPosLength = WallSegmentLength.None;
 		}
 
@@ -143,12 +156,13 @@ public class WallNode : MonoBehaviour
 			rayLength = 1f;
 		if (Physics.Raycast(xNeg, out hit, rayLength, raycastLayer))
 		{
-			xNegConnected = false;
+			xNegConnectedNode = null;
 			xNegLength = WallSegmentLength.None;
 
 			if ((1 << hit.transform.gameObject.layer) == connectionObjectLayer)
 			{
-				xNegConnected = true;
+				xNegConnectedNode = hit.transform.gameObject.GetComponentInParent<WallNode>();
+				
 				float length = Mathf.RoundToInt(Vector3.Distance(transform.position, hit.transform.position) * 100);
 				length = length - (length % 25);
 
@@ -159,7 +173,7 @@ public class WallNode : MonoBehaviour
 		}
 		else
 		{
-			xNegConnected = false;
+			xNegConnectedNode = null;
 			xNegLength = WallSegmentLength.None;
 		}
 	}
@@ -168,35 +182,27 @@ public class WallNode : MonoBehaviour
 	public void SetupWall()
 	{
 		zPosWall.SegmentType = zPosPreferredWallSegmentType;
-		zNegWall.SegmentType = zNegPreferredWallSegmentType;
 		xPosWall.SegmentType = xPosPreferredWallSegmentType;
-		xNegWall.SegmentType = xNegPreferredWallSegmentType;
+
 		CheckAllCorners();
 
+		// negative walls should never have to be enabled. needs refactor to clean this up
 
-
-
-		xPosWall.gameObject.SetActive(xPosConnected);
-		xNegWall.gameObject.SetActive(xNegConnected && xNegLength == WallSegmentLength.Full);
-		zPosWall.gameObject.SetActive(zPosConnected);
-		zNegWall.gameObject.SetActive(zNegConnected && zNegLength == WallSegmentLength.Full);
+		xPosWall.gameObject.SetActive(xPosConnectedNode != null);
+		//xNegWall.gameObject.SetActive(xNegConnectedNode != null && xNegLength == WallSegmentLength.Full && (xNegConnectedNode.xPosConnectedNode !=  null && xNegConnectedNode.xPosConnectedNode != this));
+		zPosWall.gameObject.SetActive(zPosConnectedNode != null);
+		//zNegWall.gameObject.SetActive(zNegConnectedNode != null && zNegLength == WallSegmentLength.Full && (zNegConnectedNode.xPosConnectedNode != null && zNegConnectedNode.xPosConnectedNode != this));
 
 		SetCorners();
-	}
-
-	[ContextMenu("OptimiseWalls")]
-	private void OptimiseWalls()
-	{
-		
 	}
 
 	private void SetCorners()
 	{
 		wallCount = 0;
-		wallCount = (zPosConnected) ? wallCount + 1 : wallCount;
-		wallCount = (zNegConnected) ? wallCount + 1 : wallCount;
-		wallCount = (xPosConnected) ? wallCount + 1 : wallCount;
-		wallCount = (xNegConnected) ? wallCount + 1 : wallCount;
+		wallCount = (xPosConnectedNode != null) ? wallCount + 1 : wallCount;
+		wallCount = (xNegConnectedNode != null) ? wallCount + 1 : wallCount;
+		wallCount = (zPosConnectedNode != null) ? wallCount + 1 : wallCount;
+		wallCount = (zNegConnectedNode != null) ? wallCount + 1 : wallCount;
 
 		isCorner = false;
 
@@ -221,56 +227,112 @@ public class WallNode : MonoBehaviour
 		else if (wallCount == 1)
 		{
 			singleCorner.gameObject.SetActive(false);
+			lowSingleCorner.gameObject.SetActive(false);
 			flatCorner.gameObject.SetActive(true);
+			lowFlatCorner.gameObject.SetActive(false);
 
 			Vector3 dir = Vector3.zero;
-			dir = (zPosConnected) ? zPosWall.transform.forward : dir;
-			dir = (zNegConnected) ? zNegWall.transform.forward : dir;
-			dir = (xPosConnected) ? xPosWall.transform.forward : dir;
-			dir = (xNegConnected) ? xNegWall.transform.forward : dir;
+			dir = (zPosConnectedNode != null) ? zPosWall.transform.forward : dir;
+			dir = (zNegConnectedNode != null) ? zNegWall.transform.forward : dir;
+			dir = (xPosConnectedNode != null) ? xPosWall.transform.forward : dir;
+			dir = (xNegConnectedNode != null) ? xNegWall.transform.forward : dir;
+
+			WallSegmentManager.WallSegmentType wallType = WallSegmentManager.WallSegmentType.None;
+			wallType = (zPosConnectedNode != null) ? zPosWall.SegmentType : wallType;
+			wallType = (zNegConnectedNode != null) ? zNegWall.SegmentType : wallType;
+			wallType = (xPosConnectedNode != null) ? xPosWall.SegmentType : wallType;
+			wallType = (xNegConnectedNode != null) ? xNegWall.SegmentType : wallType;
+
+			bool isLowWall = (wallType == WallSegmentManager.WallSegmentType.halfLowWall || wallType == WallSegmentManager.WallSegmentType.lowWall);
+			flatCorner.gameObject.SetActive(!isLowWall);
+			lowFlatCorner.gameObject.SetActive(isLowWall);
 
 			flatCorner.forward = -dir.normalized;
 			isCorner = true;
 			wallState = WallState.ShortWall;
-
 		}
 		else if(wallCount == 2)
 		{
 			// means the wall is straight
-			if(zPosConnected == zNegConnected && xPosConnected == xNegConnected)
+			if((zPosConnectedNode != null) == (zNegConnectedNode != null) && (xPosConnectedNode != null) == (xNegConnectedNode != null))
 			{
 				singleCorner.gameObject.SetActive(false);
+				lowSingleCorner.gameObject.SetActive(false);
 				flatCorner.gameObject.SetActive(false);
+				lowFlatCorner.gameObject.SetActive(false);
 				wallState = WallState.LongWall;
 			}
 			else
 			{
-				singleCorner.gameObject.SetActive(true);
+				singleCorner.gameObject.SetActive(false);
+				lowSingleCorner.gameObject.SetActive(false);
 				flatCorner.gameObject.SetActive(false);
+				lowFlatCorner.gameObject.SetActive(false);
 
 				Vector3 dir = Vector3.zero;
-				dir += (zPosConnected) ? zPosWall.transform.forward : Vector3.zero;
-				dir += (zNegConnected) ? zNegWall.transform.forward : Vector3.zero;
-				dir += (xPosConnected) ? xPosWall.transform.forward : Vector3.zero;
-				dir += (xNegConnected) ? xNegWall.transform.forward : Vector3.zero;
+				dir += (zPosConnectedNode != null) ? zPosWall.transform.forward : Vector3.zero;
+				dir += (zNegConnectedNode != null) ? zNegWall.transform.forward : Vector3.zero;
+				dir += (xPosConnectedNode != null) ? xPosWall.transform.forward : Vector3.zero;
+				dir += (xNegConnectedNode != null) ? xNegWall.transform.forward : Vector3.zero;
+
+				bool hasHighWall = !(zPosWall.IsLowWall || zNegWall.IsLowWall || xPosWall.IsLowWall || xNegWall.IsLowWall);
+				bool hasLowWall = zPosWall.IsLowWall || zNegWall.IsLowWall || xPosWall.IsLowWall || xNegWall.IsLowWall;
+
+				singleCorner.gameObject.SetActive(hasHighWall);
+				lowSingleCorner.gameObject.SetActive(hasLowWall);
 
 				singleCorner.forward = dir.normalized;
 				isCorner = true;
 				wallState = WallState.Corner;
-
 			}
 		}
 	}
 
 	private void OnDrawGizmos()
 	{
-		Color h = Gizmos.color;
-		Handles.color = Color.blue;
-		Handles.Label(connectionObject.transform.position + (Vector3.up) * 0.25f, wallState.ToString());
-		Handles.color = h;
 		Color c = Gizmos.color;
-		Gizmos.color = Color.blue;
+		Color y = Color.yellow;
+		y.a = 0.5f;
+		Gizmos.color = y;
 		Gizmos.DrawCube(connectionObject.transform.position, connectionObject.localScale);
 		Gizmos.color = c;
+	}
+
+	private void OnDrawGizmosSelected()
+	{
+		GUIStyle style = new GUIStyle();
+		style.normal.textColor = Color.black;
+
+		Handles.Label(connectionObject.transform.position + (Vector3.up) * 0.25f, wallState.ToString(), style);
+
+		Color c1 = Gizmos.color;
+		Color b = Color.blue;
+		b.a = 0.5f;
+		Gizmos.color = b;
+
+		Handles.Label(connectionObject.transform.position + (Vector3.up) * 0.25f + Vector3.forward * 0.5f, $"zPos wall \n WallType: {zPosPreferredWallSegmentType.ToString()}", style);
+		Gizmos.DrawCube(connectionObject.transform.position + Vector3.forward * 0.5f, connectionObject.localScale);
+		Gizmos.DrawCube(connectionObject.transform.position + Vector3.forward, connectionObject.localScale * 0.5f);
+
+		//Handles.Label(connectionObject.transform.position + (Vector3.up) * 0.25f - Vector3.forward * 0.5f, $"zNeg wall \n WallType: {zNegPreferredWallSegmentType.ToString()}", style);
+		//Gizmos.DrawCube(connectionObject.transform.position - Vector3.forward * 0.5f, connectionObject.localScale);
+		Gizmos.DrawCube(connectionObject.transform.position - Vector3.forward, connectionObject.localScale * 0.5f);
+		Gizmos.color = c1;
+
+		Color c2 = Gizmos.color;
+		Color r = Color.red;
+		r.a = 0.5f;
+		Gizmos.color = r;
+
+		Handles.Label(connectionObject.transform.position + (Vector3.up) * 0.25f + Vector3.right * 0.5f, $"xPos wall \n WallType: {xPosPreferredWallSegmentType.ToString()}", style);
+		Gizmos.DrawCube(connectionObject.transform.position + Vector3.right * 0.5f, connectionObject.localScale);
+		Gizmos.DrawCube(connectionObject.transform.position + Vector3.right, connectionObject.localScale * 0.5f);
+
+		//Handles.Label(connectionObject.transform.position + (Vector3.up) * 0.25f - Vector3.right * 0.5f, $"xNeg wall \n WallType: {xNegPreferredWallSegmentType.ToString()}", style);
+		//Gizmos.DrawCube(connectionObject.transform.position - Vector3.right * 0.5f, connectionObject.localScale);
+		Gizmos.DrawCube(connectionObject.transform.position - Vector3.right, connectionObject.localScale * 0.5f);
+
+		Gizmos.color = c2;
+
 	}
 }

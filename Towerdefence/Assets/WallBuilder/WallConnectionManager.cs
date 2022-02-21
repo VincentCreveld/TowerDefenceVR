@@ -12,6 +12,8 @@ public class WallConnectionManager : MonoBehaviour
 #if UNITY_EDITOR
 	private void Update()
 	{
+		// TODO: should only be done when selected. Needs to invoke check on walls it connects to
+
 		UpdateWalls();
 		
 	}

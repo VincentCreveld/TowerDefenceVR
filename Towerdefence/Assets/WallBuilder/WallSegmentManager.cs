@@ -9,25 +9,27 @@ public class WallSegmentManager : MonoBehaviour
 	public enum WallSegmentType
 	{
 		None,
-		_1x3FullWall,
-		_05x3FullWall,
-		_1x3VentWall,
-		_1x3DoorWall,
-		_05x1Wall,
-		_1x1Wall
+		fullWall,
+		halfFullWall,
+		ventWall,
+		doorWall,
+		halfLowWall,
+		lowWall
 	}
 
-	[SerializeField] private Transform _1x3FullWall = null;
-	[SerializeField] private Transform _05x3FullWall = null;
-	[SerializeField] private Transform _1x3VentWall = null;
-	[SerializeField] private Transform _1x3DoorWall = null;
-	[SerializeField] private Transform _05x1Wall = null;
-	[SerializeField] private Transform _1x1Wall = null;
+	[SerializeField] private Transform FullWall = null;
+	[SerializeField] private Transform HalfFullWall = null;
+	[SerializeField] private Transform VentWall = null;
+	[SerializeField] private Transform DoorWall = null;
+	[SerializeField] private Transform HalfShortFullWall = null;
+	[SerializeField] private Transform ShortFullWall = null;
 
 	public float WallLength { get; private set; } = 1f;
 	public float PreferredWallLength { get; private set; } = 1f;
 	public float WallSpace { get => wallSpace; set { wallSpace = value; CheckWallLengths(); } }
 	public bool CanFullWall = false;
+
+	public bool IsLowWall => segmentType == WallSegmentType.halfLowWall || segmentType == WallSegmentType.lowWall;
 
 	private void CheckWallLengths()
 	{
@@ -35,11 +37,11 @@ public class WallSegmentManager : MonoBehaviour
 		num = num - (num % 25);
 		CanFullWall = num >= 100;
 
-		if (!CanFullWall && (preferredType != WallSegmentType._05x1Wall || preferredType != WallSegmentType._05x3FullWall))
-			if (preferredType == WallSegmentType._1x1Wall)
-				segmentType = WallSegmentType._05x1Wall;
+		if (!CanFullWall && (preferredType != WallSegmentType.halfLowWall || preferredType != WallSegmentType.halfFullWall))
+			if (preferredType == WallSegmentType.lowWall)
+				segmentType = WallSegmentType.halfLowWall;
 			else
-				segmentType = WallSegmentType._05x3FullWall;
+				segmentType = WallSegmentType.halfFullWall;
 		else
 			segmentType = preferredType;
 	}
@@ -59,36 +61,36 @@ public class WallSegmentManager : MonoBehaviour
 		}
 	}
 
-	private WallSegmentType preferredType = WallSegmentType._1x3FullWall;
+	private WallSegmentType preferredType = WallSegmentType.fullWall;
 
 #if UNITY_EDITOR
 	private void Update()
 	{
-		_1x3FullWall.gameObject.SetActive(segmentType == WallSegmentType._1x3FullWall);
-		_05x3FullWall.gameObject.SetActive(segmentType == WallSegmentType._05x3FullWall);
-		_1x3VentWall.gameObject.SetActive(segmentType == WallSegmentType._1x3VentWall);
-		_1x3DoorWall.gameObject.SetActive(segmentType == WallSegmentType._1x3DoorWall);
-		_05x1Wall.gameObject.SetActive(segmentType == WallSegmentType._05x1Wall);
-		_1x1Wall.gameObject.SetActive(segmentType == WallSegmentType._1x1Wall);
+		FullWall.gameObject.SetActive(segmentType == WallSegmentType.fullWall);
+		HalfFullWall.gameObject.SetActive(segmentType == WallSegmentType.halfFullWall);
+		VentWall.gameObject.SetActive(segmentType == WallSegmentType.ventWall);
+		DoorWall.gameObject.SetActive(segmentType == WallSegmentType.doorWall);
+		HalfShortFullWall.gameObject.SetActive(segmentType == WallSegmentType.halfLowWall);
+		ShortFullWall.gameObject.SetActive(segmentType == WallSegmentType.lowWall);
 
 		switch (segmentType)
 		{
-			case WallSegmentType._1x3FullWall:
+			case WallSegmentType.fullWall:
 				WallLength = 1f;
 				break;
-			case WallSegmentType._05x3FullWall:
+			case WallSegmentType.halfFullWall:
 				WallLength = 0.5f;
 				break;
-			case WallSegmentType._1x3VentWall:
+			case WallSegmentType.ventWall:
 				WallLength = 1f;
 				break;
-			case WallSegmentType._1x3DoorWall:
+			case WallSegmentType.doorWall:
 				WallLength = 1f;
 				break;
-			case WallSegmentType._05x1Wall:
+			case WallSegmentType.halfLowWall:
 				WallLength = 0.5f;
 				break;
-			case WallSegmentType._1x1Wall:
+			case WallSegmentType.lowWall:
 				WallLength = 1f;
 				break;
 			default:
@@ -98,22 +100,22 @@ public class WallSegmentManager : MonoBehaviour
 
 		switch (preferredType)
 		{
-			case WallSegmentType._1x3FullWall:
+			case WallSegmentType.fullWall:
 				PreferredWallLength = 1f;
 				break;
-			case WallSegmentType._05x3FullWall:
+			case WallSegmentType.halfFullWall:
 				PreferredWallLength = 0.5f;
 				break;
-			case WallSegmentType._1x3VentWall:
+			case WallSegmentType.ventWall:
 				PreferredWallLength = 1f;
 				break;
-			case WallSegmentType._1x3DoorWall:
+			case WallSegmentType.doorWall:
 				PreferredWallLength = 1f;
 				break;
-			case WallSegmentType._05x1Wall:
+			case WallSegmentType.halfLowWall:
 				PreferredWallLength = 0.5f;
 				break;
-			case WallSegmentType._1x1Wall:
+			case WallSegmentType.lowWall:
 				PreferredWallLength = 1f;
 				break;
 			default:
