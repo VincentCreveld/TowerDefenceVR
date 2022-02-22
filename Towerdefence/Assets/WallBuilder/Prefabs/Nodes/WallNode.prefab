@@ -108,7 +108,7 @@ Transform:
   m_GameObject: {fileID: 991275936959852342}
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1.25}
   m_Children: []
   m_Father: {fileID: 4165838326457212413}
   m_RootOrder: 1
@@ -392,6 +392,9 @@ MonoBehaviour:
   connectionObjectLayer:
     serializedVersion: 2
     m_Bits: 2048
+  wallCount: 0
+  lowWallCount: 0
+  highWallCount: 0
 --- !u!114 &6122617185368654157
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -463,7 +466,7 @@ Transform:
   m_GameObject: {fileID: 8531011076645300511}
   m_LocalRotation: {x: -0, y: 0.38268322, z: -0, w: 0.9238797}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.373231, y: 1, z: 1.057513}
   m_Children: []
   m_Father: {fileID: 6937563092377027124}
   m_RootOrder: 0
