@@ -64,6 +64,7 @@
     <Compile Include="Assets\Scripts\WaveManagement\WaveManager.cs" />
     <Compile Include="Assets\Scripts\Powerups\PlatformHotspotManager.cs" />
     <Compile Include="Assets\Oculus\Spatializer\scripts\ONSPPropagationMaterial.cs" />
+    <Compile Include="Assets\WallBuilder\WallSegmentStylePackage.cs" />
     <Compile Include="Assets\Scripts\Weapons\ProjectileBullet.cs" />
     <Compile Include="Assets\Oculus\Spatializer\scripts\ONSPPropagationSettings.cs" />
     <Compile Include="Assets\Scripts\Killbox.cs" />
@@ -94,7 +95,6 @@
     <Compile Include="Assets\Scripts\Enemy\IHittable.cs" />
     <Compile Include="Assets\Scripts\WaveManagement\Wave.cs" />
     <Compile Include="Assets\Oculus\Spatializer\scenes\Standard Assets\Character Controllers\Sources\Scripts\MouseLook.cs" />
-    <Compile Include="Assets\WallBuilder\WallSegmentStylePackage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

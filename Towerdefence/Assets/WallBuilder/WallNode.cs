@@ -58,6 +58,8 @@ public class WallNode : MonoBehaviour
 
 	private bool isCorner = false;
 	public int wallCount = 0;
+	public int lowWallCount = 0;
+	public int highWallCount = 0;
 
 	public WallState wallState { get; private set; } = WallState.None;
 
@@ -199,13 +201,25 @@ public class WallNode : MonoBehaviour
 	private void SetCorners()
 	{
 		wallCount = 0;
-		wallCount = (xPosConnectedNode != null) ? wallCount + 1 : wallCount;
-		wallCount = (xNegConnectedNode != null) ? wallCount + 1 : wallCount;
-		wallCount = (zPosConnectedNode != null) ? wallCount + 1 : wallCount;
-		wallCount = (zNegConnectedNode != null) ? wallCount + 1 : wallCount;
+		highWallCount = 0;
+		highWallCount = (xPosConnectedNode != null) ? highWallCount + 1 : highWallCount;
+		highWallCount = (xNegConnectedNode != null) ? highWallCount + 1 : highWallCount;
+		highWallCount = (zPosConnectedNode != null) ? highWallCount + 1 : highWallCount;
+		highWallCount = (zNegConnectedNode != null) ? highWallCount + 1 : highWallCount;
+
+		lowWallCount = 0;
+		lowWallCount = (xPosConnectedNode != null && xPosWall.IsLowWall) ? lowWallCount + 1 : lowWallCount;
+		lowWallCount = (xNegConnectedNode != null && (xNegConnectedNode.xPosWall != null && xNegConnectedNode.xPosWall.IsLowWall)) ? lowWallCount + 1 : lowWallCount;
+		lowWallCount = (zPosConnectedNode != null && zPosWall.IsLowWall) ? lowWallCount + 1 : lowWallCount;
+		lowWallCount = (zNegConnectedNode != null && (zNegConnectedNode.zPosWall != null && zNegConnectedNode.zPosWall.IsLowWall)) ? lowWallCount + 1 : lowWallCount;
 
 		isCorner = false;
 
+		wallCount = highWallCount;
+		if (highWallCount >= 2 && lowWallCount >= 1)
+			wallCount -= lowWallCount;
+
+		// check if other wall is low. Otherwise apply wall border
 		if (wallCount <= 0 || wallCount > 2)
 		{
 			singleCorner.gameObject.SetActive(false);
@@ -232,22 +246,41 @@ public class WallNode : MonoBehaviour
 			lowFlatCorner.gameObject.SetActive(false);
 
 			Vector3 dir = Vector3.zero;
-			dir = (zPosConnectedNode != null) ? zPosWall.transform.forward : dir;
-			dir = (zNegConnectedNode != null) ? zNegWall.transform.forward : dir;
-			dir = (xPosConnectedNode != null) ? xPosWall.transform.forward : dir;
-			dir = (xNegConnectedNode != null) ? xNegWall.transform.forward : dir;
+			dir = (xPosConnectedNode != null && (xPosConnectedNode.xNegWall != null && (dir == Vector3.zero || !xPosConnectedNode.xNegWall.IsLowWall))) ? xPosWall.transform.forward : dir;
+			dir = (xNegConnectedNode != null && (xNegConnectedNode.xPosWall != null && (dir == Vector3.zero || !xNegConnectedNode.xPosWall.IsLowWall))) ? xNegWall.transform.forward : dir;
+			dir = (zPosConnectedNode != null && (zPosConnectedNode.zNegWall != null && (dir == Vector3.zero || !zPosConnectedNode.zNegWall.IsLowWall))) ? zPosWall.transform.forward : dir;
+			dir = (zNegConnectedNode != null && (zNegConnectedNode.zPosWall != null && (dir == Vector3.zero || !zNegConnectedNode.zPosWall.IsLowWall))) ? zNegWall.transform.forward : dir;
 
 			WallSegmentManager.WallSegmentType wallType = WallSegmentManager.WallSegmentType.None;
-			wallType = (zPosConnectedNode != null) ? zPosWall.SegmentType : wallType;
-			wallType = (zNegConnectedNode != null) ? zNegWall.SegmentType : wallType;
-			wallType = (xPosConnectedNode != null) ? xPosWall.SegmentType : wallType;
-			wallType = (xNegConnectedNode != null) ? xNegWall.SegmentType : wallType;
+			if(highWallCount > wallCount)
+			{
+				if (zPosConnectedNode != null)
+					wallType = (wallType == WallSegmentManager.WallSegmentType.None || wallType == WallSegmentManager.WallSegmentType.lowWall || wallType == WallSegmentManager.WallSegmentType.halfLowWall) ? (zPosWall.SegmentType != WallSegmentManager.WallSegmentType.None) ? zPosWall.SegmentType : wallType : wallType;
+
+				if (zNegConnectedNode != null)
+					wallType = (wallType == WallSegmentManager.WallSegmentType.None || wallType == WallSegmentManager.WallSegmentType.lowWall || wallType == WallSegmentManager.WallSegmentType.halfLowWall) ? (zNegWall.SegmentType != WallSegmentManager.WallSegmentType.None) ? zNegWall.SegmentType : wallType : wallType;
+
+				if (xPosConnectedNode != null)
+					wallType = (wallType == WallSegmentManager.WallSegmentType.None || wallType == WallSegmentManager.WallSegmentType.lowWall || wallType == WallSegmentManager.WallSegmentType.halfLowWall) ? (xPosWall.SegmentType != WallSegmentManager.WallSegmentType.None) ? xPosWall.SegmentType : wallType : wallType;
+
+				if (xNegConnectedNode != null)
+					wallType = (wallType == WallSegmentManager.WallSegmentType.None || wallType == WallSegmentManager.WallSegmentType.lowWall || wallType == WallSegmentManager.WallSegmentType.halfLowWall) ? (xNegWall.SegmentType != WallSegmentManager.WallSegmentType.None) ? xNegWall.SegmentType : wallType : wallType;
+			}
+			else
+			{
+				wallType = (zPosConnectedNode != null) ? zPosWall.SegmentType : wallType;
+				wallType = (zNegConnectedNode != null && zNegConnectedNode.zPosWall != null) ? zNegConnectedNode.zPosWall.SegmentType : wallType;
+				wallType = (xPosConnectedNode != null) ? xPosWall.SegmentType : wallType;
+				wallType = (xNegConnectedNode != null && xNegConnectedNode.xPosWall != null) ? xNegConnectedNode.xPosWall.SegmentType : wallType;
+			}	
+
 
 			bool isLowWall = (wallType == WallSegmentManager.WallSegmentType.halfLowWall || wallType == WallSegmentManager.WallSegmentType.lowWall);
 			flatCorner.gameObject.SetActive(!isLowWall);
 			lowFlatCorner.gameObject.SetActive(isLowWall);
 
 			flatCorner.forward = -dir.normalized;
+			lowFlatCorner.forward = -dir.normalized;
 			isCorner = true;
 			wallState = WallState.ShortWall;
 		}
@@ -270,18 +303,19 @@ public class WallNode : MonoBehaviour
 				lowFlatCorner.gameObject.SetActive(false);
 
 				Vector3 dir = Vector3.zero;
-				dir += (zPosConnectedNode != null) ? zPosWall.transform.forward : Vector3.zero;
-				dir += (zNegConnectedNode != null) ? zNegWall.transform.forward : Vector3.zero;
-				dir += (xPosConnectedNode != null) ? xPosWall.transform.forward : Vector3.zero;
-				dir += (xNegConnectedNode != null) ? xNegWall.transform.forward : Vector3.zero;
+				dir = (xPosConnectedNode != null && (xPosConnectedNode.xNegWall != null && !xPosConnectedNode.xNegWall.IsLowWall)) ? dir + xPosWall.transform.forward : dir;
+				dir = (xNegConnectedNode != null && (xNegConnectedNode.xPosWall != null && !xNegConnectedNode.xPosWall.IsLowWall)) ? dir + xNegWall.transform.forward : dir;
+				dir = (zPosConnectedNode != null && (zPosConnectedNode.zNegWall != null && !zPosConnectedNode.zNegWall.IsLowWall)) ? dir + zPosWall.transform.forward : dir;
+				dir = (zNegConnectedNode != null && (zNegConnectedNode.zPosWall != null && !zNegConnectedNode.zPosWall.IsLowWall)) ? dir + zNegWall.transform.forward : dir;
 
-				bool hasHighWall = !(zPosWall.IsLowWall || zNegWall.IsLowWall || xPosWall.IsLowWall || xNegWall.IsLowWall);
+				bool hasHighWall = !(zPosWall.IsLowWall && zNegWall.IsLowWall && xPosWall.IsLowWall && xNegWall.IsLowWall);
 				bool hasLowWall = zPosWall.IsLowWall || zNegWall.IsLowWall || xPosWall.IsLowWall || xNegWall.IsLowWall;
 
 				singleCorner.gameObject.SetActive(hasHighWall);
-				lowSingleCorner.gameObject.SetActive(hasLowWall);
+				lowSingleCorner.gameObject.SetActive(!hasHighWall && hasLowWall);
 
 				singleCorner.forward = dir.normalized;
+				lowSingleCorner.forward = -dir.normalized;
 				isCorner = true;
 				wallState = WallState.Corner;
 			}
@@ -314,8 +348,7 @@ public class WallNode : MonoBehaviour
 		Gizmos.DrawCube(connectionObject.transform.position + Vector3.forward * 0.5f, connectionObject.localScale);
 		Gizmos.DrawCube(connectionObject.transform.position + Vector3.forward, connectionObject.localScale * 0.5f);
 
-		//Handles.Label(connectionObject.transform.position + (Vector3.up) * 0.25f - Vector3.forward * 0.5f, $"zNeg wall \n WallType: {zNegPreferredWallSegmentType.ToString()}", style);
-		//Gizmos.DrawCube(connectionObject.transform.position - Vector3.forward * 0.5f, connectionObject.localScale);
+		
 		Gizmos.DrawCube(connectionObject.transform.position - Vector3.forward, connectionObject.localScale * 0.5f);
 		Gizmos.color = c1;
 
@@ -328,8 +361,6 @@ public class WallNode : MonoBehaviour
 		Gizmos.DrawCube(connectionObject.transform.position + Vector3.right * 0.5f, connectionObject.localScale);
 		Gizmos.DrawCube(connectionObject.transform.position + Vector3.right, connectionObject.localScale * 0.5f);
 
-		//Handles.Label(connectionObject.transform.position + (Vector3.up) * 0.25f - Vector3.right * 0.5f, $"xNeg wall \n WallType: {xNegPreferredWallSegmentType.ToString()}", style);
-		//Gizmos.DrawCube(connectionObject.transform.position - Vector3.right * 0.5f, connectionObject.localScale);
 		Gizmos.DrawCube(connectionObject.transform.position - Vector3.right, connectionObject.localScale * 0.5f);
 
 		Gizmos.color = c2;
