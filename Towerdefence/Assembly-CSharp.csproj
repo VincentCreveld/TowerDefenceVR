@@ -62,6 +62,7 @@
     <Compile Include="Assets\Oculus\Voice\Demo\Scripts\BuiltinDemo\TimerDisplay.cs" />
     <Compile Include="Assets\Scripts\Weapons\Pistol.cs" />
     <Compile Include="Assets\Oculus\Spatializer\scripts\ONSPPropagationGeometry.cs" />
+    <Compile Include="Assets\WallBuilder\AssetPlace\WallPainter.cs" />
     <Compile Include="Assets\Scripts\Powerups\BasePowerup.cs" />
     <Compile Include="Assets\Scripts\WaveManagement\WaveData.cs" />
     <Compile Include="Assets\Scripts\WaveManagement\WaveManager.cs" />

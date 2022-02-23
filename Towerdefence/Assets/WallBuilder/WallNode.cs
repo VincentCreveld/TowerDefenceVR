@@ -65,13 +65,16 @@ public class WallNode : MonoBehaviour
 
 	public void CheckAllCorners()
 	{
-		connectionObject.transform.localPosition = Vector3.zero;
+		connectionObject.transform.localPosition = new Vector3(0,connectionObject.transform.localScale.y * 0.5f,0);
 		transform.rotation = Quaternion.identity;
 
-		Ray zPos = new Ray(connectionObject.position, new Vector3(0, 0, 1));
-		Ray zNeg = new Ray(connectionObject.position, new Vector3(0, 0, -1));
-		Ray xPos = new Ray(connectionObject.position, new Vector3(1, 0, 0));
-		Ray xNeg = new Ray(connectionObject.position, new Vector3(-1, 0, 0));
+		Vector3 rayPos = connectionObject.position;
+		rayPos.y -= connectionObject.localScale.y * 0.5f;
+
+		Ray zPos = new Ray(rayPos, new Vector3(0, 0, 1));
+		Ray zNeg = new Ray(rayPos, new Vector3(0, 0, -1));
+		Ray xPos = new Ray(rayPos, new Vector3(1, 0, 0));
+		Ray xNeg = new Ray(rayPos, new Vector3(-1, 0, 0));
 
 		RaycastHit hit;
 		float rayLength = zPosWall.PreferredWallLength;
@@ -87,7 +90,7 @@ public class WallNode : MonoBehaviour
 			{
 				zPosConnectedNode = hit.transform.gameObject.GetComponentInParent<WallNode>();
 
-				float length = Mathf.RoundToInt(Vector3.Distance(transform.position, hit.transform.position) * 100);
+				float length = Mathf.RoundToInt(Vector3.Distance(connectionObject.transform.position, hit.transform.position) * 100);
 				length = length - (length % 25);
 
 				zPosLength = (length <= zPosWall.WallLength * 100) ? WallSegmentLength.Full : (length == zPosWall.WallLength * 50) ? WallSegmentLength.Half : WallSegmentLength.None;
@@ -113,7 +116,7 @@ public class WallNode : MonoBehaviour
 			{
 				zNegConnectedNode = hit.transform.gameObject.GetComponentInParent<WallNode>();
 
-				float length = Mathf.RoundToInt(Vector3.Distance(transform.position, hit.transform.position) * 100);
+				float length = Mathf.RoundToInt(Vector3.Distance(connectionObject.transform.position, hit.transform.position) * 100);
 				length = length - (length % 25);
 
 				zNegLength = (length <= zNegWall.WallLength * 100) ? WallSegmentLength.Full : (length == zNegWall.WallLength * 50) ? WallSegmentLength.Half : WallSegmentLength.None;
@@ -139,7 +142,7 @@ public class WallNode : MonoBehaviour
 			{
 				xPosConnectedNode = hit.transform.gameObject.GetComponentInParent<WallNode>();
 
-				float length = Mathf.RoundToInt(Vector3.Distance(transform.position, hit.transform.position) * 100);
+				float length = Mathf.RoundToInt(Vector3.Distance(connectionObject.transform.position, hit.transform.position) * 100);
 				length = length - (length % 25);
 
 				xPosLength = (length <= xPosWall.WallLength * 100) ? WallSegmentLength.Full : (length == xPosWall.WallLength * 50) ? WallSegmentLength.Half : WallSegmentLength.None;
@@ -165,7 +168,7 @@ public class WallNode : MonoBehaviour
 			{
 				xNegConnectedNode = hit.transform.gameObject.GetComponentInParent<WallNode>();
 
-				float length = Mathf.RoundToInt(Vector3.Distance(transform.position, hit.transform.position) * 100);
+				float length = Mathf.RoundToInt(Vector3.Distance(connectionObject.transform.position, hit.transform.position) * 100);
 				length = length - (length % 25);
 
 				xNegLength = (length <= xNegWall.WallLength * 100) ? WallSegmentLength.Full : (length == xNegWall.WallLength * 50) ? WallSegmentLength.Half : WallSegmentLength.None;
@@ -372,19 +375,27 @@ public class WallNode : MonoBehaviour
 		GUIStyle style = new GUIStyle();
 		style.normal.textColor = Color.black;
 
-		Handles.Label(connectionObject.transform.position + (Vector3.up) * 0.25f, wallState.ToString(), style);
+		Vector3 rayPos = connectionObject.position;
+		rayPos.y -= connectionObject.localScale.y * 0.5f;
+
+		Handles.Label(rayPos + (Vector3.up) * 0.25f, wallState.ToString(), style);
 
 		Color c1 = Gizmos.color;
 		Color b = Color.blue;
 		b.a = 0.5f;
 		Gizmos.color = b;
 
-		Handles.Label(connectionObject.transform.position + (Vector3.up) * 0.25f + Vector3.forward * 0.5f, $"zPos wall \n WallType: {zPosPreferredWallSegmentType.ToString()}", style);
-		Gizmos.DrawCube(connectionObject.transform.position + Vector3.forward * 0.5f, connectionObject.localScale);
-		Gizmos.DrawCube(connectionObject.transform.position + Vector3.forward, connectionObject.localScale * 0.5f);
+		Vector3 handleSize = connectionObject.localScale;
+		handleSize.y = handleSize.x;
 
 
-		Gizmos.DrawCube(connectionObject.transform.position - Vector3.forward, connectionObject.localScale * 0.5f);
+
+		Handles.Label(rayPos + (Vector3.up) * 0.25f + Vector3.forward * 0.5f, $"zPos wall \n WallType: {zPosPreferredWallSegmentType.ToString()}", style);
+		Gizmos.DrawCube(rayPos + Vector3.forward * 0.5f, handleSize);
+		Gizmos.DrawCube(rayPos + Vector3.forward, handleSize * 0.5f);
+
+
+		Gizmos.DrawCube(rayPos - Vector3.forward, handleSize * 0.5f);
 		Gizmos.color = c1;
 
 		Color c2 = Gizmos.color;
@@ -392,11 +403,11 @@ public class WallNode : MonoBehaviour
 		r.a = 0.5f;
 		Gizmos.color = r;
 
-		Handles.Label(connectionObject.transform.position + (Vector3.up) * 0.25f + Vector3.right * 0.5f, $"xPos wall \n WallType: {xPosPreferredWallSegmentType.ToString()}", style);
-		Gizmos.DrawCube(connectionObject.transform.position + Vector3.right * 0.5f, connectionObject.localScale);
-		Gizmos.DrawCube(connectionObject.transform.position + Vector3.right, connectionObject.localScale * 0.5f);
+		Handles.Label(rayPos + (Vector3.up) * 0.25f + Vector3.right * 0.5f, $"xPos wall \n WallType: {xPosPreferredWallSegmentType.ToString()}", style);
+		Gizmos.DrawCube(rayPos + Vector3.right * 0.5f, handleSize);
+		Gizmos.DrawCube(rayPos + Vector3.right, handleSize * 0.5f);
 
-		Gizmos.DrawCube(connectionObject.transform.position - Vector3.right, connectionObject.localScale * 0.5f);
+		Gizmos.DrawCube(rayPos - Vector3.right, handleSize * 0.5f);
 
 		Gizmos.color = c2;
 
