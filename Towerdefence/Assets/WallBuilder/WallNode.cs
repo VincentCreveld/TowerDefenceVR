@@ -364,7 +364,7 @@ public class WallNode : MonoBehaviour
 	{
 		Color c = Gizmos.color;
 		Color y = Color.yellow;
-		y.a = 0.5f;
+		y.a = 1f;
 		Gizmos.color = y;
 		Gizmos.DrawCube(connectionObject.transform.position, connectionObject.localScale);
 		Gizmos.color = c;

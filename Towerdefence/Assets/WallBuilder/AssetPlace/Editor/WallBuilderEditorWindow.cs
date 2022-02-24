@@ -5,22 +5,55 @@ using UnityEditor;
 using System.Linq;
 
 [CustomEditor(typeof(WallPainter))]
-public class WallSegmentPlacer : Editor
+public class WallBuilderEditorWindow : EditorWindow
 {
+	private enum SelectionSnap
+	{
+		Full,
+		Half,
+		Quarter
+	}
+
 	static WallPainter wallPainter = null;
 	static Camera cam = null;
-
-	private float planeOffset = 0.0f;
 
 	private bool isHittingPlane = false;
 	private Vector3 planeHitPos = Vector3.zero;
 
-	public override void OnInspectorGUI()
+	bool isPlacing = false;
+
+	private bool IsMouseDownThisFrame => Event.current.type == EventType.MouseDown && Event.current.button == 0;
+	private bool IsMouseUpThisFrame => Event.current.type == EventType.MouseUp && Event.current.button == 0;
+	private float planeOffset = 0.0f;
+	[HideInInspector] public bool wantToPlace = false;
+
+	[MenuItem("Asset builder tool/Editor window")]
+	public static void ShowWindow()
 	{
-		if (Selection.activeGameObject != null)
-			wallPainter = Selection.activeGameObject.GetComponent<WallPainter>();
-		else
-			wallPainter = null;
+		EditorWindow.GetWindow(typeof(WallBuilderEditorWindow));
+	}
+
+
+	// Window has been selected
+	void OnFocus()
+	{
+		// Remove delegate listener if it has previously
+		// been assigned.
+		SceneView.duringSceneGui -= this.OnSceneGUI;
+		// Add (or re-add) the delegate.
+		SceneView.duringSceneGui += this.OnSceneGUI;
+	}
+
+	void OnDestroy()
+	{
+		// When the window is destroyed, remove the delegate
+		// so that it will no longer do any drawing.
+		SceneView.duringSceneGui -= this.OnSceneGUI;
+	}
+
+	public void OnGUI()
+	{
+		wallPainter = GameObject.FindObjectOfType<WallPainter>();
 
 		if (wallPainter == null || Selection.count > 1)
 		{
@@ -28,7 +61,9 @@ public class WallSegmentPlacer : Editor
 			return;
 		}
 
-		base.OnInspectorGUI();
+		EditorGUILayout.BeginVertical();
+		EditorGUILayout.LabelField("Plane display variables", EditorStyles.boldLabel);
+		EditorGUI.indentLevel++;
 
 		planeOffset = EditorGUILayout.Slider("Plane offset Y ", wallPainter.yGridPos, -10f, 10f);
 		//planeOffset = EditorGUILayout.FloatField("Plane offset Y: ", wallPainter.yOffset);
@@ -37,44 +72,66 @@ public class WallSegmentPlacer : Editor
 		wallPainter.drawGrid = EditorGUILayout.Toggle("Draw grid gizmo ", wallPainter.drawGrid);
 
 		wallPainter.gridSize = Mathf.Abs(EditorGUILayout.IntField("Grid dimensions ", wallPainter.gridSize));
+		EditorGUI.indentLevel--;
 
-		
+		EditorGUILayout.EndVertical();
 	}
 
-	private void OnSceneGUI()
+	private void OnSceneGUI(SceneView sceneView)
 	{
-
-		if (Selection.activeGameObject != null)
-			wallPainter = Selection.activeGameObject.GetComponent<WallPainter>();
-		else
-			wallPainter = null;
+		wallPainter = GameObject.FindObjectOfType<WallPainter>();
 		cam = Camera.current;
 
-		if(wallPainter != null)
+		int id = GUIUtility.GetControlID(FocusType.Passive);
+		HandleUtility.AddDefaultControl(id);
+		Tools.current = Tool.None;
+
+		if (wallPainter != null)
 		{
 			Vector3 pos = Vector3.up * planeOffset;
 			wallPainter.UpdatePlane();
 
 			SceneView.duringSceneGui += UpdateRaycast;
 		}
-		else
-		{
-			Debug.Log("No wall selected");
-		}
 
 		if (isHittingPlane)
 		{
-			Vector3 handlePos = planeHitPos;
-			handlePos.y = wallPainter.yGridPos;
-			Handles.DrawWireDisc(handlePos, Vector3.up, 0.5f, 0.1f);
+			if (wallPainter != null)
+			{
+				Vector3 handlePos = planeHitPos;
+				handlePos.y = wallPainter.yGridPos;
+				Handles.color = Color.black;
+				Handles.DrawWireDisc(handlePos, Vector3.up, 0.5f, 0.1f);
+				Handles.DrawSolidDisc(handlePos, Vector3.up, 0.1f);
+				string text = (isPlacing) ? "Click to place wall end" : "Click to place wall start";
+				Handles.Label(handlePos + Vector3.up * 0.5f, text);
+				Handles.color = new Color();
+			}
+
+			switch (Event.current.type)
+			{
+				case EventType.MouseDown:
+					isPlacing = !isPlacing;
+					Event.current.Use();
+					break;
+				case EventType.MouseUp:
+				case EventType.MouseDrag:
+				case EventType.DragUpdated:
+				case EventType.DragPerform:
+				case EventType.DragExited:
+					Debug.Log(Event.current.type);
+					Event.current.Use();
+					break;
+			}
 		}
 
 		SceneView.RepaintAll();
+
 	}
 
 	private void UpdateRaycast(SceneView sceneView)
 	{
-		if(wallPainter == null)
+		if (wallPainter == null)
 		{
 			SceneView.duringSceneGui -= UpdateRaycast;
 			return;
@@ -99,11 +156,8 @@ public class WallSegmentPlacer : Editor
 			.ToList();
 		wallNodes = wallNodes.Where(item => item != null).ToList();
 
-		if(wallNodes.Count > 0)
-		{
-			Debug.Log("hit a wall");
+		if (wallNodes.Count > 0)
 			DoPlaneHit(wallNodes[0].transform.position);
-		}
 		else if (raycastHits.Count > 0)
 			DoPlaneHit(raycastHits[0]);
 		else
@@ -130,4 +184,5 @@ public class WallSegmentPlacer : Editor
 			);
 		return p;
 	}
+
 }
