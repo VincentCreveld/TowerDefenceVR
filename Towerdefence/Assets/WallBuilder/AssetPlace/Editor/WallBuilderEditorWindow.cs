@@ -21,11 +21,12 @@ public class WallBuilderEditorWindow : EditorWindow
 	private Vector3 planeHitPos = Vector3.zero;
 
 	bool isPlacing = false;
+	private bool claimFocus = false;
 
 	private bool IsMouseDownThisFrame => Event.current.type == EventType.MouseDown && Event.current.button == 0;
 	private bool IsMouseUpThisFrame => Event.current.type == EventType.MouseUp && Event.current.button == 0;
 	private float planeOffset = 0.0f;
-	[HideInInspector] public bool wantToPlace = false;
+	[HideInInspector] public bool wantsToPlace = false;
 
 	[MenuItem("Asset builder tool/Editor window")]
 	public static void ShowWindow()
@@ -62,6 +63,8 @@ public class WallBuilderEditorWindow : EditorWindow
 		}
 
 		EditorGUILayout.BeginVertical();
+		claimFocus = EditorGUILayout.Toggle("Draw grid gizmo ", claimFocus);
+
 		EditorGUILayout.LabelField("Plane display variables", EditorStyles.boldLabel);
 		EditorGUI.indentLevel++;
 
@@ -75,16 +78,31 @@ public class WallBuilderEditorWindow : EditorWindow
 		EditorGUI.indentLevel--;
 
 		EditorGUILayout.EndVertical();
+
+		string buttonText = (!wantsToPlace) ? "Place wall node" : "Stop placing wall node";
+		if(GUILayout.Button(buttonText))
+		{
+			wantsToPlace = !wantsToPlace;
+			isPlacing = false;
+			dragStartPos = new Vector3();
+		}
 	}
 
+	private Vector3 dragStartPos = new Vector3();
+	private SnapAxis snapDir = SnapAxis.X;
+	private Vector3 newSnappedPos = new Vector3();
+	private Vector3 dragEndPos = new Vector3();
 	private void OnSceneGUI(SceneView sceneView)
 	{
 		wallPainter = GameObject.FindObjectOfType<WallPainter>();
 		cam = Camera.current;
 
-		int id = GUIUtility.GetControlID(FocusType.Passive);
-		HandleUtility.AddDefaultControl(id);
-		Tools.current = Tool.None;
+		if(claimFocus)
+		{
+			int id = GUIUtility.GetControlID(FocusType.Passive);
+			HandleUtility.AddDefaultControl(id);
+			Tools.current = Tool.None;
+		}
 
 		if (wallPainter != null)
 		{
@@ -98,35 +116,75 @@ public class WallBuilderEditorWindow : EditorWindow
 		{
 			if (wallPainter != null)
 			{
-				Vector3 handlePos = planeHitPos;
-				handlePos.y = wallPainter.yGridPos;
-				Handles.color = Color.black;
-				Handles.DrawWireDisc(handlePos, Vector3.up, 0.5f, 0.1f);
-				Handles.DrawSolidDisc(handlePos, Vector3.up, 0.1f);
-				string text = (isPlacing) ? "Click to place wall end" : "Click to place wall start";
-				Handles.Label(handlePos + Vector3.up * 0.5f, text);
-				Handles.color = new Color();
+				if(wantsToPlace)
+					DrawCircleHandle();
 			}
 
-			switch (Event.current.type)
+			if (Event.current.isMouse && Event.current.button == 0)
 			{
-				case EventType.MouseDown:
-					isPlacing = !isPlacing;
-					Event.current.Use();
-					break;
-				case EventType.MouseUp:
-				case EventType.MouseDrag:
-				case EventType.DragUpdated:
-				case EventType.DragPerform:
-				case EventType.DragExited:
-					Debug.Log(Event.current.type);
-					Event.current.Use();
-					break;
+				switch (Event.current.type)
+				{
+					case EventType.MouseDown:
+						if (wantsToPlace)
+						{
+							dragStartPos = GetSnappedHandlePos();
+							newSnappedPos = SnapVector3ToAxis(dragStartPos, GetSnappedHandlePos());
+							isPlacing = true;
+						}
+						Event.current.Use();
+						break;
+					case EventType.MouseUp:
+						if (wantsToPlace)
+						{
+							isPlacing = false;
+							dragEndPos = newSnappedPos;
+							Debug.DrawLine(dragStartPos, dragEndPos, Color.red, 3f);
+							dragEndPos = new Vector3();
+							dragStartPos = new Vector3();
+						}
+						Event.current.Use();
+						break;
+					case EventType.MouseDrag:
+						newSnappedPos = SnapVector3ToAxis(dragStartPos, GetSnappedHandlePos());
+						Event.current.Use();
+						break;
+					case EventType.DragUpdated:
+					case EventType.DragPerform:
+					case EventType.DragExited:
+						Debug.Log(Event.current.type);
+						Event.current.Use();
+						break;
+				}
 			}
 		}
 
-		SceneView.RepaintAll();
+		if(isPlacing)
+		{
+			Handles.color = Color.red;
+			Handles.DrawSolidDisc(newSnappedPos, Vector3.up, 0.1f);
+		}
 
+		SceneView.RepaintAll();
+	}
+
+	private void DrawCircleHandle()
+	{
+		Vector3 handlePos = GetSnappedHandlePos();
+		Handles.color = (isPlacing) ? Color.blue : Color.yellow;
+		Handles.DrawWireDisc(handlePos, Vector3.up, 0.5f, 0.1f);
+		Handles.DrawSolidDisc(handlePos, Vector3.up, 0.1f);
+
+		string text = (isPlacing) ? "Click to place wall end": "Click to place wall start";
+		Handles.Label(handlePos + Vector3.up * 0.5f, text + " " + GetSnappedHandlePos());
+
+		Handles.color = new Color();
+	}
+
+	private Vector3 GetSnappedHandlePos()
+	{
+		Vector3 handlePos = planeHitPos;
+		handlePos.y = wallPainter.yGridPos;
+		return handlePos;
 	}
 
 	private void UpdateRaycast(SceneView sceneView)
@@ -172,7 +230,7 @@ public class WallBuilderEditorWindow : EditorWindow
 			return;
 
 		isHittingPlane = true;
-		planeHitPos = SnapVector3(pos, 0.25f);
+		planeHitPos = SnapVector3(pos, 0.5f);
 	}
 
 	private Vector3 SnapVector3(Vector3 pos, float f)
@@ -185,4 +243,35 @@ public class WallBuilderEditorWindow : EditorWindow
 		return p;
 	}
 
+	private Vector3 SnapVector3ToAxis(Vector3 startPos, Vector3 pos)
+	{
+		Vector3 returnVal = pos;
+		SnapAxis axis = GetSnapAxis(startPos, pos);
+
+		switch (axis)
+		{
+			case SnapAxis.X:
+				returnVal.x = startPos.x;
+				break;
+			case SnapAxis.Y:
+				returnVal.y = startPos.y;
+				break;
+			case SnapAxis.Z:
+				returnVal.z = startPos.z;
+				break;
+			default:
+				break;
+		}
+
+		return returnVal;
+	}
+
+	private SnapAxis GetSnapAxis(Vector3 startPos, Vector3 currentPos)
+	{
+		float ang = Mathf.Round((Mathf.Atan2(dragStartPos.z - GetSnappedHandlePos().z, dragStartPos.x - GetSnappedHandlePos().x) * Mathf.Rad2Deg));
+		if (Mathf.Abs(ang) > 45 && Mathf.Abs(ang) <= 135)
+			return SnapAxis.X;
+		else
+			return SnapAxis.Z;
+	}
 }

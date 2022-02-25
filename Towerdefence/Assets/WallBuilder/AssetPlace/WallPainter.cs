@@ -62,10 +62,10 @@ public class WallPainter : MonoBehaviour
 						Gizmos.DrawCube(pos, s2);
 						break;
 					default:
-						Gizmos.color = quarterLineColor;
-						Vector3 s3 = scale;
-						s3.x *= 0.4f;
-						Gizmos.DrawCube(pos, s3);
+						//Gizmos.color = quarterLineColor;
+						//Vector3 s3 = scale;
+						//s3.x *= 0.4f;
+						//Gizmos.DrawCube(pos, s3);
 						break;
 				}
 			}
@@ -103,10 +103,10 @@ public class WallPainter : MonoBehaviour
 						Gizmos.DrawCube(pos, s2);
 						break;
 					default:
-						Gizmos.color = quarterLineColor;
-						Vector3 s3 = scale;
-						s3.z *= 0.4f;
-						Gizmos.DrawCube(pos, s3);
+						//Gizmos.color = quarterLineColor;
+						//Vector3 s3 = scale;
+						//s3.z *= 0.4f;
+						//Gizmos.DrawCube(pos, s3);
 						break;
 				}
 			}
