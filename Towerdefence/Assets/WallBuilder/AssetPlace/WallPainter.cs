@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
@@ -111,5 +112,10 @@ public class WallPainter : MonoBehaviour
 				}
 			}
 		}
+	}
+
+	public void SetDrawGrid(bool toggle)
+	{
+		drawGrid = toggle;
 	}
 }

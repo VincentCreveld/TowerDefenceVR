@@ -63,16 +63,19 @@ public class WallBuilderEditorWindow : EditorWindow
 		}
 
 		EditorGUILayout.BeginVertical();
-		claimFocus = EditorGUILayout.Toggle("Draw grid gizmo ", claimFocus);
+		claimFocus = EditorGUILayout.Toggle("Prevent focus loss ", claimFocus);
 
 		EditorGUILayout.LabelField("Plane display variables", EditorStyles.boldLabel);
 		EditorGUI.indentLevel++;
+		if(GUILayout.Button("Toggle gizmo grid " + ((wallPainter.drawGrid) ? "off" : "on")))
+		{
+			wallPainter.SetDrawGrid(!wallPainter.drawGrid);
+		}
 
 		planeOffset = EditorGUILayout.Slider("Plane offset Y ", wallPainter.yGridPos, -10f, 10f);
 		//planeOffset = EditorGUILayout.FloatField("Plane offset Y: ", wallPainter.yOffset);
 		wallPainter.SetYOffset(planeOffset);
 
-		wallPainter.drawGrid = EditorGUILayout.Toggle("Draw grid gizmo ", wallPainter.drawGrid);
 
 		wallPainter.gridSize = Mathf.Abs(EditorGUILayout.IntField("Grid dimensions ", wallPainter.gridSize));
 		EditorGUI.indentLevel--;
