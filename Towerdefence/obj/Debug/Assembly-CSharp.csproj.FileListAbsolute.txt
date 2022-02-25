@@ -1,4 +1,0 @@
-G:\TowerDefence\Towerdefence\obj\Debug\Assembly-CSharp.csprojAssemblyReference.cache
-G:\TowerDefence\Towerdefence\obj\Debug\Assembly-CSharp.csproj.CoreCompileInputs.cache
-G:\TowerDefenceVR\Towerdefence\obj\Debug\Assembly-CSharp.csprojAssemblyReference.cache
-G:\TowerDefenceVR\Towerdefence\obj\Debug\Assembly-CSharp.csproj.CoreCompileInputs.cache
