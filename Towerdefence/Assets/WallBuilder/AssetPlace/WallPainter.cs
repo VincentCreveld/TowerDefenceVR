@@ -13,6 +13,7 @@ public class WallPainter : MonoBehaviour
 	[HideInInspector] public bool drawGrid = false;
 	[HideInInspector] public int gridSize = 20;
 	public LayerMask rayFloorMask = 0;
+	public WallNode wallNodePrefab = null;
 
 	public void UpdatePlane()
 	{
@@ -63,10 +64,11 @@ public class WallPainter : MonoBehaviour
 						Gizmos.DrawCube(pos, s2);
 						break;
 					default:
-						//Gizmos.color = quarterLineColor;
-						//Vector3 s3 = scale;
-						//s3.x *= 0.4f;
-						//Gizmos.DrawCube(pos, s3);
+						// 0.25f lines
+						// Gizmos.color = quarterLineColor;
+						// Vector3 s3 = scale;
+						// s3.x *= 0.4f;
+						// Gizmos.DrawCube(pos, s3);
 						break;
 				}
 			}
@@ -104,10 +106,11 @@ public class WallPainter : MonoBehaviour
 						Gizmos.DrawCube(pos, s2);
 						break;
 					default:
-						//Gizmos.color = quarterLineColor;
-						//Vector3 s3 = scale;
-						//s3.z *= 0.4f;
-						//Gizmos.DrawCube(pos, s3);
+						// 0.25f lines
+						// Gizmos.color = quarterLineColor;
+						// Vector3 s3 = scale;
+						// s3.z *= 0.4f;
+						// Gizmos.DrawCube(pos, s3);
 						break;
 				}
 			}

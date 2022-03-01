@@ -201,6 +201,24 @@ public class WallNode : MonoBehaviour
 		SetCorners();
 	}
 
+	public void SetupWallFirstTime(SnapAxis snapAxis)
+	{
+		if(xPosPreferredWallSegmentType == WallSegmentManager.WallSegmentType.None)
+			xPosPreferredWallSegmentType = (snapAxis == SnapAxis.Z) ? WallSegmentManager.WallSegmentType.fullWall : WallSegmentManager.WallSegmentType.None;
+		if(zPosPreferredWallSegmentType == WallSegmentManager.WallSegmentType.None)
+			zPosPreferredWallSegmentType = (snapAxis == SnapAxis.X) ? WallSegmentManager.WallSegmentType.fullWall : WallSegmentManager.WallSegmentType.None;
+
+		zPosWall.SegmentType = zPosPreferredWallSegmentType;
+		xPosWall.SegmentType = xPosPreferredWallSegmentType;
+
+		CheckAllCorners();
+
+		xPosWall.gameObject.SetActive(xPosConnectedNode != null);
+		zPosWall.gameObject.SetActive(zPosConnectedNode != null);
+
+		SetCorners();
+	}
+
 	private void SetCorners()
 	{
 		wallCount = 0;
@@ -366,7 +384,7 @@ public class WallNode : MonoBehaviour
 		Color y = Color.yellow;
 		y.a = 1f;
 		Gizmos.color = y;
-		Gizmos.DrawCube(connectionObject.transform.position, connectionObject.localScale);
+		Gizmos.DrawCube(connectionObject.transform.position, connectionObject.localScale + Vector3.up * 0.1f);
 		Gizmos.color = c;
 	}
 
