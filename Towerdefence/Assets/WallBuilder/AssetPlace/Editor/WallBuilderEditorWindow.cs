@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEditor;
 using System.Linq;
 using UnityEditor.SceneManagement;
+using System;
+using Object = UnityEngine.Object;
 
 [CustomEditor(typeof(WallPainter))]
 public class WallBuilderEditorWindow : EditorWindow
@@ -59,7 +61,7 @@ public class WallBuilderEditorWindow : EditorWindow
 
 		EditorGUILayout.LabelField("Plane display variables", EditorStyles.boldLabel);
 		EditorGUI.indentLevel++;
-		if(GUILayout.Button("Toggle gizmo grid " + ((wallPainter.drawGrid) ? "off" : "on")))
+		if (GUILayout.Button("Toggle gizmo grid " + ((wallPainter.drawGrid) ? "off" : "on")))
 		{
 			wallPainter.SetDrawGrid(!wallPainter.drawGrid);
 		}
@@ -75,13 +77,13 @@ public class WallBuilderEditorWindow : EditorWindow
 		EditorGUILayout.EndVertical();
 
 		string buttonText = (!wantsToPlace) ? "Place wall node" : "Stop placing wall node";
-		if(GUILayout.Button(buttonText))
+		if (GUILayout.Button(buttonText))
 		{
 			wantsToPlace = !wantsToPlace;
 			isPlacing = false;
 			dragStartPos = new Vector3();
 		}
-		if(wantsToPlace)
+		if (wantsToPlace)
 		{
 			string selectionTypeText = (isBoxSelection) ? "Current tool: box selection" : "Current tool: line selection";
 			if (GUILayout.Button(selectionTypeText))
@@ -94,7 +96,7 @@ public class WallBuilderEditorWindow : EditorWindow
 
 	}
 
-	
+
 	private void OnSceneGUI(SceneView sceneView)
 	{
 		if (!isToolActive)
@@ -102,7 +104,7 @@ public class WallBuilderEditorWindow : EditorWindow
 		wallPainter = GameObject.FindObjectOfType<WallPainter>();
 		cam = Camera.current;
 
-		if(isToolActive)
+		if (isToolActive)
 		{
 			int id = GUIUtility.GetControlID(FocusType.Passive);
 			HandleUtility.AddDefaultControl(id);
@@ -121,7 +123,7 @@ public class WallBuilderEditorWindow : EditorWindow
 		{
 			if (wallPainter != null)
 			{
-				if(wantsToPlace)
+				if (wantsToPlace)
 					DrawCircleHandle();
 			}
 
@@ -147,7 +149,7 @@ public class WallBuilderEditorWindow : EditorWindow
 							isPlacing = false;
 							dragEndPos = newSnappedPos;
 
-							if(isBoxSelection)
+							if (isBoxSelection)
 								OnEndDragBoxSelection();
 							else
 								OnEndDrag();
@@ -177,7 +179,7 @@ public class WallBuilderEditorWindow : EditorWindow
 			}
 		}
 
-		if(isPlacing)
+		if (isPlacing)
 		{
 			Handles.color = Color.red;
 			Handles.DrawSolidDisc(newSnappedPos, Vector3.up, 0.1f);
@@ -197,7 +199,7 @@ public class WallBuilderEditorWindow : EditorWindow
 
 		//ConnectWallNodes(PlaceWallNodesLine(dragStartPos, dragEndPos), GetSnapAxis(dragStartPos, dragEndPos));
 		PlaceWallNodesLine(dragStartPos, dragEndPos);
-		ProcWallNodesInLine(dragStartPos, dragEndPos);
+		//ProcWallNodesInLine(dragStartPos, dragEndPos);
 		EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
 
 		dragEndPos = new Vector3();
@@ -215,7 +217,7 @@ public class WallBuilderEditorWindow : EditorWindow
 		for (int i = 0; i < halfSegmentCount; i++)
 		{
 			WallNode node = GetWallNodeAtPos(curCheckPos);
-			if(node != null)
+			if (node != null)
 				foundNodes.Add(node);
 			curCheckPos += directional.normalized * 0.5f;
 		}
@@ -229,32 +231,54 @@ public class WallBuilderEditorWindow : EditorWindow
 
 		return foundNodes;
 	}
-
-	private void ConnectWallNodes(List<WallNode> nodes, SnapAxis axis)
+	private List<WallNode> ProcWallNodesInBox(Vector3 A, Vector3 B)
 	{
-		foreach (WallNode node in nodes)
-		{
-			node.SetupWallFirstTime(axis);
-		}
-	}	
+		Vector3 AB = A;
+		AB.z = B.z;
+
+		Vector3 BA = A;
+		BA.x = B.x;
+
+		List<WallNode> foundNodes = new List<WallNode>();
+
+		foundNodes.AddRange(ProcWallNodesInLine(A, AB));
+		foundNodes.AddRange(ProcWallNodesInLine(A, BA));
+		foundNodes.AddRange(ProcWallNodesInLine(B, AB));
+		foundNodes.AddRange(ProcWallNodesInLine(B, BA));
+
+		return foundNodes;
+	}
 
 	private void OnEndDragBoxSelection()
 	{
 		DrawBoxSelection(dragStartPos, dragEndPos);
 
 		if(dragStartPos.x == dragEndPos.x || dragStartPos.z == dragEndPos.z)
+		{
 			PlaceWallNodesLine(dragStartPos, dragEndPos);
+			//ProcWallNodesInLine(dragStartPos, dragEndPos);
+		}
 		else
+		{
 			PlaceWallNodes(dragStartPos, dragEndPos);
+			//EditorCoroutines.Execute(DelayExecuteOneFrame(()=>ProcWallNodesInBox(dragStartPos, dragEndPos)));
+		}
+
 		EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
 
 		dragEndPos = new Vector3();
 		dragStartPos = new Vector3();
 	}
 
+	private IEnumerator DelayExecuteOneFrame(System.Action a)
+	{
+		yield return new WaitForSeconds(0.1f);
+		a?.Invoke();
+	}
+
 	private bool CanPlaceWallNode(Vector3 pos)
 	{
-		Collider[] cols = Physics.OverlapSphere(pos, 0.25f, wallPainter.rayFloorMask);
+		Collider[] cols = Physics.OverlapSphere(pos + Vector3.up * 0.11f, 0.1f, wallPainter.rayFloorMask);
 		bool canPlace = true;
 		foreach (var item in cols)
 		{
@@ -266,7 +290,7 @@ public class WallBuilderEditorWindow : EditorWindow
 
 	private WallNode GetWallNodeAtPos(Vector3 pos)
 	{
-		Collider[] cols = Physics.OverlapSphere(pos, 0.25f, wallPainter.rayFloorMask);
+		Collider[] cols = Physics.OverlapSphere(pos + Vector3.up * 0.11f, 0.1f, wallPainter.rayFloorMask);
 		foreach (var item in cols)
 		{
 			if (item.transform.gameObject.GetComponentInParent<WallNode>())
@@ -370,12 +394,23 @@ public class WallBuilderEditorWindow : EditorWindow
 		if (!(Physics.Raycast(placePos, directional, 0.5f, wallPainter.rayFloorMask) && Physics.Raycast(placePos, -directional, 0.5f, wallPainter.rayFloorMask)))
 			wallSegmentNodes.Add(B);
 
+		if(wallSegmentNodes.Count > 1)
+		{
+			SnapAxis axis = GetSnapAxis(A, B);
+
+			if(axis == SnapAxis.X)
+				wallSegmentNodes = wallSegmentNodes.OrderBy(x => x.z).ToList();
+			else
+				wallSegmentNodes = wallSegmentNodes.OrderBy(x => x.x).ToList();
+
+		}
+
 		return wallSegmentNodes;
 	}
 
-	private List<Transform> PlaceWallNodes(Vector3 A, Vector3 B)
+	private List<WallNode> PlaceWallNodes(Vector3 A, Vector3 B)
 	{
-		List<Transform> placedNodes = new List<Transform>();
+		List<WallNode> placedNodes = new List<WallNode>();
 
 		Vector3 AB = A;
 		AB.z = B.z;
@@ -383,28 +418,37 @@ public class WallBuilderEditorWindow : EditorWindow
 		Vector3 BA = A;
 		BA.x = B.x;
 
-		List<Vector3> allPositions = new List<Vector3>();
-		allPositions.AddRange(GetWallNodeList(A, AB));
-		allPositions.AddRange(GetWallNodeList(A, BA));
-		allPositions.AddRange(GetWallNodeList(B, AB));
-		allPositions.AddRange(GetWallNodeList(B, BA));
 
-		int no = 0;
-		foreach (Vector3 pos in allPositions)
-		{
-			if (CanPlaceWallNode(pos))
-			{
-				no++;
-				Object go = PrefabUtility.InstantiatePrefab(wallPainter.wallNodePrefab, wallPainter.transform);
+		placedNodes.AddRange(PlaceWallNodesLine(A, AB));
+		placedNodes.AddRange(PlaceWallNodesLine(A, BA));
+		placedNodes.AddRange(PlaceWallNodesLine(B, AB));
+		placedNodes.AddRange(PlaceWallNodesLine(B, BA));
 
-				Transform tr = wallPainter.GetComponentInChildren<WallNode>().transform;
-				Undo.RegisterCreatedObjectUndo(tr.gameObject, $"placed wall line from {dragStartPos} to {dragEndPos}");
-				placedNodes.Add(tr);
-				tr.position = pos;
-				tr.parent = null;
-			}
-		}
-		Debug.Log($"Succesfully placed {no} nodes. Failed to place {allPositions.Count - no}.");
+		//List<Vector3> allPositions = new List<Vector3>();
+		//allPositions.AddRange(GetWallNodeList(A, AB));
+		//allPositions.AddRange(GetWallNodeList(A, BA));
+		//allPositions.AddRange(GetWallNodeList(B, AB));
+		//allPositions.AddRange(GetWallNodeList(B, BA));
+
+		//int no = 0;
+		//foreach (Vector3 pos in allPositions)
+		//{
+		//	if (CanPlaceWallNode(pos))
+		//	{
+		//		no++;
+		//		Object go = PrefabUtility.InstantiatePrefab(wallPainter.wallNodePrefab, wallPainter.transform);
+
+		//		WallNode tr = wallPainter.GetComponentInChildren<WallNode>();
+		//		Undo.RegisterCreatedObjectUndo(tr.gameObject, $"placed wall line from {dragStartPos} to {dragEndPos}");
+
+		//		placedNodes.Add(tr);
+		//		tr.SetupWallFirstTime(GetSnapAxis(A, B));
+
+		//		tr.transform.position = pos;
+		//		tr.transform.parent = null;
+		//	}
+		//}
+		//Debug.Log($"Succesfully placed {no} nodes. Failed to place {allPositions.Count - no}.");
 		return placedNodes;
 	}
 
@@ -421,6 +465,7 @@ public class WallBuilderEditorWindow : EditorWindow
 		allPositions.AddRange(GetWallNodeList(A, B));
 
 		int no = 0;
+		int no2 = 0;
 		foreach (Vector3 pos in allPositions)
 		{
 			if (CanPlaceWallNode(pos))
@@ -431,12 +476,25 @@ public class WallBuilderEditorWindow : EditorWindow
 				WallNode tr = wallPainter.GetComponentInChildren<WallNode>();
 				Undo.RegisterCreatedObjectUndo(tr.gameObject, $"placed wall line from {dragStartPos} to {dragEndPos}");
 				placedNodes.Add(tr);
-				tr.SetupWallFirstTime(GetSnapAxis(A, B));
 				tr.transform.position = pos;
 				tr.transform.parent = null;
 			}
+			else
+			{
+				WallNode node = GetWallNodeAtPos(pos);
+				if (node != null)
+				{
+					no2++;
+					placedNodes.Add(node);
+				}
+			}
 		}
-		Debug.Log($"Succesfully placed {no} nodes. Failed to place {allPositions.Count - no}.");
+		Debug.Log($"Succesfully placed {no} nodes. Failed to place {allPositions.Count - no}. Added {no2} existing nodes to list.");
+
+		for (int i = 0; i < placedNodes.Count - 1; i++)
+		{
+			placedNodes[i].SetupWallFirstTime(GetSnapAxis(A, B));
+		}
 		return placedNodes;
 
 	}
@@ -554,7 +612,7 @@ public class WallBuilderEditorWindow : EditorWindow
 
 	private SnapAxis GetSnapAxis(Vector3 startPos, Vector3 currentPos)
 	{
-		float ang = Mathf.Round((Mathf.Atan2(dragStartPos.z - GetSnappedHandlePos().z, dragStartPos.x - GetSnappedHandlePos().x) * Mathf.Rad2Deg));
+		float ang = Mathf.Round((Mathf.Atan2(currentPos.z - startPos.z, currentPos.x - startPos.x) * Mathf.Rad2Deg));
 		if (Mathf.Abs(ang) > 45 && Mathf.Abs(ang) <= 135)
 			return SnapAxis.X;
 		else

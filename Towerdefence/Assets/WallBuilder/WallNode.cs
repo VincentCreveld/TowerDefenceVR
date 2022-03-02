@@ -65,11 +65,11 @@ public class WallNode : MonoBehaviour
 
 	public void CheckAllCorners()
 	{
-		connectionObject.transform.localPosition = new Vector3(0,connectionObject.transform.localScale.y * 0.5f,0);
+		connectionObject.transform.localPosition = new Vector3(0, connectionObject.transform.localScale.y * 0.5f, 0);
 		transform.rotation = Quaternion.identity;
 
 		Vector3 rayPos = connectionObject.position;
-		rayPos.y -= connectionObject.localScale.y * 0.5f;
+		rayPos.y -= (connectionObject.localScale.y * 0.5f) - 0.1f;
 
 		Ray zPos = new Ray(rayPos, new Vector3(0, 0, 1));
 		Ray zNeg = new Ray(rayPos, new Vector3(0, 0, -1));
@@ -203,13 +203,12 @@ public class WallNode : MonoBehaviour
 
 	public void SetupWallFirstTime(SnapAxis snapAxis)
 	{
-		if(xPosPreferredWallSegmentType == WallSegmentManager.WallSegmentType.None)
-			xPosPreferredWallSegmentType = (snapAxis == SnapAxis.Z) ? WallSegmentManager.WallSegmentType.fullWall : WallSegmentManager.WallSegmentType.None;
-		if(zPosPreferredWallSegmentType == WallSegmentManager.WallSegmentType.None)
-			zPosPreferredWallSegmentType = (snapAxis == SnapAxis.X) ? WallSegmentManager.WallSegmentType.fullWall : WallSegmentManager.WallSegmentType.None;
 
-		zPosWall.SegmentType = zPosPreferredWallSegmentType;
-		xPosWall.SegmentType = xPosPreferredWallSegmentType;
+		if (xPosPreferredWallSegmentType == WallSegmentManager.WallSegmentType.None)
+			xPosPreferredWallSegmentType = (snapAxis == SnapAxis.Z) ? WallSegmentManager.WallSegmentType.fullWall : WallSegmentManager.WallSegmentType.None;
+
+		if (zPosPreferredWallSegmentType == WallSegmentManager.WallSegmentType.None)
+			zPosPreferredWallSegmentType = (snapAxis == SnapAxis.X) ? WallSegmentManager.WallSegmentType.fullWall : WallSegmentManager.WallSegmentType.None;
 
 		CheckAllCorners();
 
@@ -217,6 +216,10 @@ public class WallNode : MonoBehaviour
 		zPosWall.gameObject.SetActive(zPosConnectedNode != null);
 
 		SetCorners();
+
+
+		zPosWall.SegmentType = zPosPreferredWallSegmentType;
+		xPosWall.SegmentType = xPosPreferredWallSegmentType;
 	}
 
 	private void SetCorners()
