@@ -153,6 +153,7 @@ PlayerSettings:
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
+    Android: com.DefaultCompany.Towerdefence
     Standalone: com.DefaultCompany.Towerdefence
   buildNumber:
     Standalone: 0

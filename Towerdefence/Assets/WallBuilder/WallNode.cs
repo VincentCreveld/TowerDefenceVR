@@ -27,25 +27,25 @@ public class WallNode : MonoBehaviour
 	[SerializeField] private WallSegmentManager zPosWall;
 	[SerializeField] private WallNode zPosConnectedNode = null;
 	private WallSegmentLength zPosLength = WallSegmentLength.None;
-	[SerializeField] private WallSegmentManager.WallSegmentType zPosPreferredWallSegmentType = WallSegmentManager.WallSegmentType.fullWall;
+	[SerializeField] private WallSegmentManager.WallSegmentType zPosPreferredWallSegmentType = WallSegmentManager.WallSegmentType.None;
 
 	[Header("xPos Wall vars")]
 	[SerializeField] private WallSegmentManager xPosWall;
 	[SerializeField] private WallNode xPosConnectedNode = null;
 	private WallSegmentLength xPosLength = WallSegmentLength.None;
-	[SerializeField] private WallSegmentManager.WallSegmentType xPosPreferredWallSegmentType = WallSegmentManager.WallSegmentType.fullWall;
+	[SerializeField] private WallSegmentManager.WallSegmentType xPosPreferredWallSegmentType = WallSegmentManager.WallSegmentType.None;
 
 	[Header("zNeg Wall vars (unused)")]
 	[SerializeField] private WallSegmentManager zNegWall;
 	[SerializeField] private WallNode zNegConnectedNode = null;
 	private WallSegmentLength zNegLength = WallSegmentLength.None;
-	private WallSegmentManager.WallSegmentType zNegPreferredWallSegmentType = WallSegmentManager.WallSegmentType.fullWall;
+	private WallSegmentManager.WallSegmentType zNegPreferredWallSegmentType = WallSegmentManager.WallSegmentType.None;
 
 	[Header("xNeg Wall vars (unused)")]
 	[SerializeField] private WallSegmentManager xNegWall;
 	[SerializeField] private WallNode xNegConnectedNode = null;
 	private WallSegmentLength xNegLength = WallSegmentLength.None;
-	private WallSegmentManager.WallSegmentType xNegPreferredWallSegmentType = WallSegmentManager.WallSegmentType.fullWall;
+	private WallSegmentManager.WallSegmentType xNegPreferredWallSegmentType = WallSegmentManager.WallSegmentType.None;
 
 	[Header("Misc vars")]
 	[SerializeField] private Transform singleCorner;

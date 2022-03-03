@@ -373,10 +373,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   zPosWall: {fileID: 5909410135135259062}
   zPosConnectedNode: {fileID: 0}
-  zPosPreferredWallSegmentType: 1
+  zPosPreferredWallSegmentType: 0
   xPosWall: {fileID: 4142497453659942683}
   xPosConnectedNode: {fileID: 0}
-  xPosPreferredWallSegmentType: 1
+  xPosPreferredWallSegmentType: 0
   zNegWall: {fileID: 8793037735229081985}
   zNegConnectedNode: {fileID: 0}
   xNegWall: {fileID: 146668102527172932}

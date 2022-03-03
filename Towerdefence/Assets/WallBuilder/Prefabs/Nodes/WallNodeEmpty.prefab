@@ -11,14 +11,6 @@ PrefabInstance:
       propertyPath: segmentType
       value: 2
       objectReference: {fileID: 0}
-    - target: {fileID: 4165838326457212410, guid: d674638d2370cef44999931381458b61, type: 3}
-      propertyPath: xPosPreferredWallSegmentType
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4165838326457212410, guid: d674638d2370cef44999931381458b61, type: 3}
-      propertyPath: zPosPreferredWallSegmentType
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 4165838326457212411, guid: d674638d2370cef44999931381458b61, type: 3}
       propertyPath: m_Name
       value: WallNodeEmpty

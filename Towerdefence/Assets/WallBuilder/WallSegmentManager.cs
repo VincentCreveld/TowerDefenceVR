@@ -37,13 +37,17 @@ public class WallSegmentManager : MonoBehaviour
 		num = num - (num % 25);
 		CanFullWall = num >= 100;
 
-		if (!CanFullWall && (preferredType != WallSegmentType.halfLowWall || preferredType != WallSegmentType.halfFullWall))
-			if (preferredType == WallSegmentType.lowWall)
-				segmentType = WallSegmentType.halfLowWall;
+		if(preferredType != WallSegmentType.None)
+		{
+
+			if (!CanFullWall && (preferredType != WallSegmentType.halfLowWall || preferredType != WallSegmentType.halfFullWall))
+				if (preferredType == WallSegmentType.lowWall)
+					segmentType = WallSegmentType.halfLowWall;
+				else
+					segmentType = WallSegmentType.halfFullWall;
 			else
-				segmentType = WallSegmentType.halfFullWall;
-		else
-			segmentType = preferredType;
+				segmentType = preferredType;
+		}
 	}
 
 	private float wallSpace = 0f;
@@ -61,7 +65,7 @@ public class WallSegmentManager : MonoBehaviour
 		}
 	}
 
-	private WallSegmentType preferredType = WallSegmentType.fullWall;
+	private WallSegmentType preferredType = WallSegmentType.None;
 
 #if UNITY_EDITOR
 	private void Update()
