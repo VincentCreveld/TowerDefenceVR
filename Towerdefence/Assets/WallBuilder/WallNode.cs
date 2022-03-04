@@ -222,6 +222,23 @@ public class WallNode : MonoBehaviour
 		xPosWall.SegmentType = xPosPreferredWallSegmentType;
 	}
 
+	public void SetWallToNone(SnapAxis snapAxis)
+	{
+		xPosPreferredWallSegmentType = (snapAxis == SnapAxis.Z) ? xPosPreferredWallSegmentType : WallSegmentManager.WallSegmentType.None;
+
+		zPosPreferredWallSegmentType = (snapAxis == SnapAxis.X) ? zPosPreferredWallSegmentType : WallSegmentManager.WallSegmentType.None;
+
+		CheckAllCorners();
+
+		xPosWall.gameObject.SetActive(xPosConnectedNode != null);
+		zPosWall.gameObject.SetActive(zPosConnectedNode != null);
+
+		SetCorners();
+
+		zPosWall.SegmentType = zPosPreferredWallSegmentType;
+		xPosWall.SegmentType = xPosPreferredWallSegmentType;
+	}
+
 	private void SetCorners()
 	{
 		wallCount = 0;

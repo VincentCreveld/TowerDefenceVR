@@ -24,13 +24,9 @@ public class WallBuilderEditorWindow : EditorWindow
 	private Vector3 planeHitPos = Vector3.zero;
 
 	bool isPlacing = false;
-	private bool isBoxSelection = false;
 	private bool isToolActive = false;
 
-	private bool IsMouseDownThisFrame => Event.current.type == EventType.MouseDown && Event.current.button == 0;
-	private bool IsMouseUpThisFrame => Event.current.type == EventType.MouseUp && Event.current.button == 0;
 	private float planeOffset = 0.0f;
-	[HideInInspector] public bool wantsToPlace = false;
 
 	private Vector3 dragStartPos = new Vector3();
 	private Vector3 newSnappedPos = new Vector3();
@@ -92,9 +88,12 @@ public class WallBuilderEditorWindow : EditorWindow
 		{
 			EditorGUI.indentLevel++;
 
+
 			EditorGUILayout.BeginHorizontal();
+			GUILayout.FlexibleSpace();
 			EditorGUILayout.LabelField("Current tool: ", EditorStyles.boldLabel);
 			EditorGUILayout.LabelField(currentBrush.ToString(), EditorStyles.boldLabel);
+			GUILayout.FlexibleSpace();
 			EditorGUILayout.EndHorizontal();
 
 			EditorGUI.indentLevel++;
@@ -143,25 +142,6 @@ public class WallBuilderEditorWindow : EditorWindow
 			EditorGUILayout.EndHorizontal();
 		}
 		EditorGUILayout.EndVertical();
-
-		string buttonText = (!wantsToPlace) ? "Place wall node" : "Stop placing wall node";
-		if (GUILayout.Button(buttonText))
-		{
-			wantsToPlace = !wantsToPlace;
-			isPlacing = false;
-			dragStartPos = new Vector3();
-		}
-		if (wantsToPlace)
-		{
-			string selectionTypeText = (isBoxSelection) ? "Current tool: box selection" : "Current tool: line selection";
-			if (GUILayout.Button(selectionTypeText))
-			{
-				isBoxSelection = !isBoxSelection;
-				dragStartPos = new Vector3();
-				dragEndPos = new Vector3();
-			}
-		}
-
 	}
 
 	private void OnSceneGUI(SceneView sceneView)
@@ -190,7 +170,7 @@ public class WallBuilderEditorWindow : EditorWindow
 		{
 			if (wallPainter != null)
 			{
-				if (wantsToPlace)
+				if (currentBrush != WallBuilderToolBrushes.None)
 					DrawCircleHandle();
 			}
 
@@ -199,37 +179,39 @@ public class WallBuilderEditorWindow : EditorWindow
 				switch (Event.current.type)
 				{
 					case EventType.MouseDown:
-						if (wantsToPlace)
+						if (currentBrush != WallBuilderToolBrushes.None)
 						{
 							dragStartPos = GetSnappedHandlePos();
-							if (!isBoxSelection)
+							if (currentBrush == WallBuilderToolBrushes.WallLine || currentBrush == WallBuilderToolBrushes.RemoveWallLine)
 								newSnappedPos = SnapVector3ToAxis(dragStartPos, GetSnappedHandlePos());
-							else
+							else if (currentBrush == WallBuilderToolBrushes.WallBox)
 								newSnappedPos = GetSnappedHandlePos();
 							isPlacing = true;
 						}
 						Event.current.Use();
 						break;
 					case EventType.MouseUp:
-						if (wantsToPlace)
+						if (currentBrush != WallBuilderToolBrushes.None)
 						{
 							isPlacing = false;
 							dragEndPos = newSnappedPos;
 
-							if (isBoxSelection)
-								OnEndDragBoxSelection();
-							else
-								OnEndDrag();
+							if (currentBrush == WallBuilderToolBrushes.WallBox)
+								OnEndDragWallBox();
+							else if (currentBrush == WallBuilderToolBrushes.WallLine)
+								OnEndDragWallLine();
+							else if (currentBrush == WallBuilderToolBrushes.RemoveWallLine)
+								OnEndDragRemoveWallLine();
 
 						}
 						Event.current.Use();
 						break;
 					case EventType.MouseDrag:
-						if (!isBoxSelection)
+						if (currentBrush == WallBuilderToolBrushes.WallLine || currentBrush == WallBuilderToolBrushes.RemoveWallLine)
 						{
 							newSnappedPos = SnapVector3ToAxis(dragStartPos, GetSnappedHandlePos());
 						}
-						else
+						else if (currentBrush == WallBuilderToolBrushes.WallBox)
 						{
 							newSnappedPos = GetSnappedHandlePos();
 						}
@@ -251,16 +233,65 @@ public class WallBuilderEditorWindow : EditorWindow
 			Handles.color = Color.red;
 			Handles.DrawSolidDisc(newSnappedPos, Vector3.up, 0.1f);
 
-			if (!isBoxSelection)
-				DrawLineSelection(dragStartPos, newSnappedPos);
-			else
+			if (currentBrush == WallBuilderToolBrushes.WallLine)
+				DrawLineSelection(dragStartPos, newSnappedPos, Color.green);
+			else if (currentBrush == WallBuilderToolBrushes.RemoveWallLine)
+				DrawLineSelection(dragStartPos, newSnappedPos, Color.red);
+			else if (currentBrush == WallBuilderToolBrushes.WallBox)
 				DrawBoxSelection(dragStartPos, newSnappedPos);
 
 		}
 		SceneView.RepaintAll();
 	}
 
-	private void OnEndDrag()
+	private void OnEndDragRemoveWallLine()
+	{
+		List<WallNode> nodes = new List<WallNode>();
+
+		List<Vector3> nodePositions = GetWallNodeListHalfStep(dragStartPos, dragEndPos);
+
+		if(dragStartPos == dragEndPos)
+		{
+			Debug.DrawRay(dragStartPos, -Vector3.forward * 0.5f, Color.blue, 3f);
+			Debug.DrawRay(dragStartPos, -Vector3.right * 0.5f, Color.blue, 3f);
+			RaycastHit hit;
+			if (Physics.Raycast(dragStartPos, -Vector3.forward, out hit, 0.5f, wallPainter.rayFloorMask))
+			{
+				WallNode n = GetWallNodeAtPos(hit.point);
+				n.SetWallToNone(SnapAxis.Z);
+			}
+			if (Physics.Raycast(dragStartPos, -Vector3.right, out hit, 0.5f, wallPainter.rayFloorMask))
+			{ 
+				WallNode n2 = GetWallNodeAtPos(hit.point);
+				n2.SetWallToNone(SnapAxis.X);
+			}
+		}
+		else
+		{
+			SnapAxis axis = GetSnapAxis(dragStartPos, dragEndPos);
+			Vector3 directional = (axis == SnapAxis.Z) ? -Vector3.forward : -Vector3.right;
+
+			foreach (Vector3 pos in nodePositions)
+			{
+				Debug.DrawRay(pos, directional * 0.5f, Color.red, 3f);
+
+				RaycastHit hit;
+				if(Physics.Raycast(pos, directional.normalized, out hit, 0.5f, wallPainter.rayFloorMask))
+				{
+					nodes.Add(GetWallNodeAtPos(hit.point));
+				}
+			}
+			// check all half positions, check for nodes in negative X and Z direction based on directional
+			// set positive wall nodes to none
+			foreach (var node in nodes)
+			{
+				node.SetWallToNone(GetSnapAxis(dragStartPos, dragEndPos));
+			}
+		}
+
+	}
+
+	private void OnEndDragWallLine()
 	{
 		PlaceWallNodesLine(dragStartPos, dragEndPos);
 		EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
@@ -268,7 +299,7 @@ public class WallBuilderEditorWindow : EditorWindow
 		dragEndPos = new Vector3();
 		dragStartPos = new Vector3();
 	}
-	private void OnEndDragBoxSelection()
+	private void OnEndDragWallBox()
 	{
 		DrawBoxSelection(dragStartPos, dragEndPos);
 
@@ -286,6 +317,7 @@ public class WallBuilderEditorWindow : EditorWindow
 	private void SetTool(WallBuilderToolBrushes tool)
 	{
 		currentBrush = tool;
+		isPlacing = false;
 	}
 
 	#region Raycast implementation
@@ -374,12 +406,12 @@ public class WallBuilderEditorWindow : EditorWindow
 		Vector3 placePos = A;
 		for (int i = 0; i < segmentCount; i++)
 		{
-				wallSegmentNodes.Add(placePos);
-				placePos += directional.normalized;
+			wallSegmentNodes.Add(placePos);
+			placePos += directional.normalized;
 		}
 		if (isHalfWall)
 		{
-				wallSegmentNodes.Add(placePos);
+			wallSegmentNodes.Add(placePos);
 		}
 
 		wallSegmentNodes.Add(B);
@@ -389,6 +421,38 @@ public class WallBuilderEditorWindow : EditorWindow
 			SnapAxis axis = GetSnapAxis(A, B);
 
 			if(axis == SnapAxis.X)
+				wallSegmentNodes = wallSegmentNodes.OrderBy(x => x.z).ToList();
+			else
+				wallSegmentNodes = wallSegmentNodes.OrderBy(x => x.x).ToList();
+
+		}
+
+		return wallSegmentNodes;
+	}
+
+	private List<Vector3> GetWallNodeListHalfStep(Vector3 A, Vector3 B)
+	{
+		List<Vector3> wallSegmentNodes = new List<Vector3>();
+
+		Vector3 directional = B - A;
+		float distance = directional.magnitude;
+		bool isHalfWall = distance % 1 != 0;
+		int segmentCount = Mathf.RoundToInt(distance * 2f);
+
+		Vector3 placePos = A;
+		for (int i = 0; i < segmentCount; i++)
+		{
+			wallSegmentNodes.Add(placePos);
+			placePos += directional.normalized * 0.5f;
+		}
+
+		wallSegmentNodes.Add(B);
+
+		if (wallSegmentNodes.Count > 1)
+		{
+			SnapAxis axis = GetSnapAxis(A, B);
+
+			if (axis == SnapAxis.X)
 				wallSegmentNodes = wallSegmentNodes.OrderBy(x => x.z).ToList();
 			else
 				wallSegmentNodes = wallSegmentNodes.OrderBy(x => x.x).ToList();
@@ -556,12 +620,12 @@ public class WallBuilderEditorWindow : EditorWindow
 		Handles.color = c;
 	}
 
-	private void DrawLineSelection(Vector3 A, Vector3 B, float thickness = 0.2f)
+	private void DrawLineSelection(Vector3 A, Vector3 B, Color col, float thickness = 0.2f)
 	{
 		Color c = Handles.color;
 		Handles.color = Color.yellow;
 		Handles.Label((A + B) * 0.5f + Vector3.up * 0.25f, Vector3.Distance(A, B).ToString());
-		DrawDummyWall(A, B, Handles.color);
+		DrawDummyWall(A, B, col);
 		Handles.color = c;
 	}
 
@@ -603,7 +667,8 @@ public class WallBuilderEditorWindow : EditorWindow
 		Handles.DrawWireDisc(handlePos, Vector3.up, 0.5f, 0.1f);
 		Handles.DrawSolidDisc(handlePos, Vector3.up, 0.1f);
 
-		string selectionType = (isBoxSelection) ? "box" : "line";
+
+		string selectionType = (currentBrush == WallBuilderToolBrushes.WallBox) ? "box" : "line";
 		string text = (isPlacing) ? $"Release to place {selectionType} selection end" : $"Click and drag to place {selectionType} selection start";
 		Handles.Label(handlePos + Vector3.up * 0.5f, text);
 
